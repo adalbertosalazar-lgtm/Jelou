@@ -26,7 +26,8 @@
       "WebFetch(domain:www.talkdesk.com)",
       "WebFetch(domain:www.nice.com)",
       "WebFetch(domain:cxtrends.zendesk.com)",
-      "WebFetch(domain:www.playvs.com)"
+      "WebFetch(domain:www.playvs.com)",
+      "Bash(node -e \":*)"
     ]
   }
 }
