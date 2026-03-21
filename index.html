@@ -299,10 +299,11 @@ function handleDrop(files){
 }
 
 async function loadExcel(){
+  const filesToProcess={...pendingFiles};
   showLoading(true);showErr(null);closeAdmin();
   try{
     const raw={};
-    for(const[name,file]of Object.entries(pendingFiles)){
+    for(const[name,file]of Object.entries(filesToProcess)){
       const buf=await file.arrayBuffer();
       const wb=XLSX.read(buf,{type:'arraybuffer',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
