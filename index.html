@@ -204,6 +204,11 @@ const SHEET_IDS = {
 const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 let charts={}, currentView='g', pendingFiles={};
 
+// ── Persistencia localStorage ─────────────
+const STORAGE_KEY='jelou_dash_v1';
+function saveRaw(raw,savedAt){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({raw,savedAt}));}catch(e){console.warn('localStorage lleno',e);}}
+function loadRaw(){try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+
 // ── Parsing helpers ──────────────────────
 function parseD(v){
   if(!v)return null;
@@ -308,18 +313,23 @@ async function loadExcel(){
       const wb=XLSX.read(buf,{type:'arraybuffer',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       raw[name]=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+      // Debug: muestra columnas detectadas en consola
+      if(raw[name].length>0)console.log(`[${name}] columnas:`,Object.keys(raw[name][0]));
     }
-    render(process(raw));
+    const savedAt=new Date().toISOString();
+    saveRaw(raw,savedAt);
+    render(process(raw),savedAt);
   }catch(e){
     showLoading(false);showErr('Error procesando Excel: '+e.message);
   }
 }
 
 // ── Render ───────────────────────────────
-function render(data){
+function render(data,savedAt){
   showLoading(false);
   document.getElementById('live-badge').style.display='flex';
-  document.getElementById('last-upd').textContent=`Actualizado: ${new Date().toLocaleString('es-CO')}`;
+  const fecha=savedAt?new Date(savedAt).toLocaleString('es-CO'):new Date().toLocaleString('es-CO');
+  document.getElementById('last-upd').textContent=`Última carga: ${fecha}`;
   renderG(data);renderO(data);setView(currentView);
 }
 
@@ -436,7 +446,14 @@ function checkPwd(){
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
 
 // ── Init ─────────────────────────────────
-window.addEventListener('load',()=>loadSheets());
+window.addEventListener('load',()=>{
+  const cached=loadRaw();
+  if(cached&&cached.raw){
+    render(process(cached.raw),cached.savedAt);
+  }else{
+    loadSheets();
+  }
+});
 </script>
 </body>
 </html>
