@@ -173,7 +173,7 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="upload-panel" id="upload-panel">
       <div style="margin-bottom:12px">
         <label style="font-size:11px;font-weight:600;color:#6B7280;display:block;margin-bottom:4px">GitHub Token (para guardar para todos)</label>
-        <input type="password" class="modal-input" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxx" style="margin-bottom:0">
+        <input type="password" class="modal-input token-input" id="gh-token-input" placeholder="github_pat_xxxxxxxxxxxx" style="margin-bottom:0">
         <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Se guarda solo en este navegador. <a href="https://github.com/settings/tokens/new?scopes=repo&description=Jelou+Dashboard" target="_blank" style="color:#7C3AED">Crear token</a></div>
       </div>
       <div class="drop-area" onclick="document.getElementById('file-input').click()"
@@ -492,7 +492,7 @@ function checkPwd(){
     document.getElementById('pwd-err').style.display='none';
     document.getElementById('upload-panel').style.display='block';
     document.getElementById('pwd-input').closest('.modal-box').querySelector('p').textContent='Acceso concedido. Sube los archivos Excel para actualizar el dashboard.';
-    document.querySelectorAll('.modal-input,.btn-modal-ok').forEach(el=>el.style.display='none');
+    document.querySelectorAll('.modal-input:not(.token-input),.btn-modal-ok').forEach(el=>el.style.display='none');
     // Cargar token guardado
     const saved=localStorage.getItem('gh_token');
     if(saved)document.getElementById('gh-token-input').value=saved;
