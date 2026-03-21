@@ -7,74 +7,87 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-:root{--volt-primary:#1A0A2E;--volt-secondary:#F5F3FF;--volt-accent:#7C3AED;--volt-accent2:#4F46E5;--volt-success:#10B981;--volt-warning:#F59E0B;--volt-danger:#EF4444;--volt-info:#6366F1;--volt-text:#4B5563;--volt-light:#EDE9FE;--sidebar-w:260px}
+:root{--jp:#1A0A2E;--ja:#7C3AED;--ja2:#4F46E5;--jg:#10B981;--jw:#F59E0B;--jr:#EF4444;--jl:#EDE9FE;--sw:260px}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F3FF;color:#4B5563;min-height:100vh}
-/* Sidebar */
-.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:linear-gradient(180deg,#1A0A2E 0%,#2D1B69 100%);z-index:200;display:flex;flex-direction:column;transition:.3s}
-.sidebar-brand{padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
-.sidebar-brand .brand-icon{width:36px;height:36px;background:linear-gradient(135deg,#7C3AED,#4F46E5);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px}
-.sidebar-brand span{color:#fff;font-weight:700;font-size:16px}
-.sidebar-nav{flex:1;padding:16px 0;overflow-y:auto}
-.nav-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em;padding:12px 24px 6px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:10px 24px;color:rgba(255,255,255,.7);font-size:13px;font-weight:500;cursor:pointer;border-radius:0;transition:.15s;border-left:3px solid transparent}
-.nav-item:hover{color:#fff;background:rgba(124,58,237,.2)}
-.nav-item.active{color:#fff;background:rgba(124,58,237,.25);border-left-color:#7C3AED}
-.nav-item i{width:18px;text-align:center;font-size:14px}
-/* Topbar */
-.topbar{position:fixed;top:0;left:var(--sidebar-w);right:0;height:64px;background:#fff;border-bottom:1px solid #EDE9FE;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 24px}
-.topbar-title{font-size:18px;font-weight:700;color:var(--volt-primary)}
-.topbar-right{display:flex;align-items:center;gap:16px}
-.badge-live{background:#EDE9FE;color:#7C3AED;font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;display:flex;align-items:center;gap:5px}
-.badge-live::before{content:'';width:7px;height:7px;background:#7C3AED;border-radius:50%;display:inline-block;animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.btn-view{padding:6px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:.15s}
-.btn-gerencial{background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff}
-.btn-gerencial:hover{opacity:.9}
-.btn-operacional{background:#fff;color:#7C3AED;border:1px solid #7C3AED}
-.btn-operacional:hover{background:#F5F3FF}
-.btn-gerencial.active,.btn-operacional.active{box-shadow:0 0 0 3px rgba(124,58,237,.2)}
-/* Main */
-.main{margin-left:var(--sidebar-w);margin-top:64px;padding:28px 28px}
-/* Stat cards */
-.stat-card{background:#fff;border-radius:12px;padding:20px 22px;border:1px solid #eaedf2;height:100%}
-.stat-card .label{font-size:12px;color:#93a0b4;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
-.stat-card .value{font-size:28px;font-weight:700;color:var(--volt-primary);line-height:1}
-.stat-card .trend{font-size:12px;margin-top:8px;display:flex;align-items:center;gap:4px}
-.trend-up{color:var(--volt-success)}.trend-down{color:var(--volt-danger)}.trend-neutral{color:#93a0b4}
-.stat-card .icon-wrap{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
-.ic-blue{background:#EDE9FE;color:#7C3AED}
-.ic-green{background:#D1FAE5;color:#059669}
-.ic-amber{background:#FEF3C7;color:#D97706}
-.ic-red{background:#FEE2E2;color:#DC2626}
-.ic-teal{background:#E0F2FE;color:#0284C7}
-/* Chart cards */
-.chart-card{background:#fff;border-radius:12px;padding:20px 22px;border:1px solid #eaedf2}
-.chart-card .card-header-custom{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.chart-card .card-title{font-size:14px;font-weight:700;color:var(--volt-primary)}
-.chart-card .card-sub{font-size:12px;color:#93a0b4}
-/* Table */
-.table-card{background:#fff;border-radius:12px;border:1px solid #eaedf2;overflow:hidden}
-.table-card .table-header{padding:16px 20px;border-bottom:1px solid #eaedf2;display:flex;align-items:center;justify-content:space-between}
-.table-card .table-header h6{font-size:14px;font-weight:700;color:var(--volt-primary);margin:0}
-table.dash-table{width:100%;border-collapse:collapse;font-size:13px}
-table.dash-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#93a0b4;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #eaedf2;background:#f9fafb}
-table.dash-table td{padding:11px 16px;border-bottom:1px solid #f3f4f6;color:var(--volt-text);vertical-align:middle}
-table.dash-table tr:last-child td{border-bottom:none}
-table.dash-table tr:hover td{background:#f9fafb}
-.badge-status{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.bs-open{background:#fff3e0;color:#e65100}
-.bs-closed{background:#e6f7f2;color:#00695c}
-.bs-progress{background:#e8f0fe;color:#0948B3}
-/* Loading */
-.loading-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;gap:16px}
-.spinner{width:40px;height:40px;border:3px solid #eaedf2;border-top-color:var(--volt-accent);border-radius:50%;animation:spin .8s linear infinite}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#F5F3FF;color:#374151;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:linear-gradient(180deg,#1A0A2E 0%,#2D1B69 100%);z-index:200;display:flex;flex-direction:column}
+.sb-brand{padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.1);display:flex;align-items:center;gap:10px}
+.sb-icon{width:34px;height:34px;background:linear-gradient(135deg,#7C3AED,#4F46E5);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.sb-brand span{color:#fff;font-weight:700;font-size:15px}
+.sb-nav{flex:1;padding:14px 0;overflow-y:auto}
+.nav-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;padding:10px 22px 5px}
+.ni{display:flex;align-items:center;gap:11px;padding:9px 22px;color:rgba(255,255,255,.65);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;border-left:3px solid transparent}
+.ni:hover{color:#fff;background:rgba(124,58,237,.2)}
+.ni.active{color:#fff;background:rgba(124,58,237,.25);border-left-color:#7C3AED}
+.ni i{width:16px;text-align:center;font-size:13px}
+.sb-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08)}
+.sb-foot .upd{font-size:10px;color:rgba(255,255,255,.35);line-height:1.5}
+.topbar{position:fixed;top:0;left:var(--sw);right:0;height:60px;background:#fff;border-bottom:1px solid #EDE9FE;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+.tb-title{font-size:16px;font-weight:700;color:var(--jp)}
+.tb-right{display:flex;align-items:center;gap:12px}
+.badge-live{background:#EDE9FE;color:#7C3AED;font-size:10px;padding:3px 9px;border-radius:20px;font-weight:600;display:flex;align-items:center;gap:4px}
+.badge-live::before{content:'';width:6px;height:6px;background:#7C3AED;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.bv{padding:5px 14px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:none;transition:.15s}
+.bv-g{background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff}
+.bv-g:hover{opacity:.88}
+.bv-o{background:#fff;color:#7C3AED;border:1px solid #7C3AED}
+.bv-o:hover{background:#F5F3FF}
+.bv-g.active,.bv-o.active{box-shadow:0 0 0 3px rgba(124,58,237,.2)}
+.main{margin-left:var(--sw);margin-top:60px;padding:24px}
+.sc{background:#fff;border-radius:10px;padding:18px 20px;border:1px solid #EDE9FE;height:100%}
+.sc .lbl{font-size:11px;color:#9CA3AF;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.sc .val{font-size:26px;font-weight:700;color:var(--jp);line-height:1}
+.sc .tr{font-size:11px;margin-top:6px}
+.tr-up{color:#059669}.tr-dn{color:#DC2626}.tr-n{color:#9CA3AF}
+.iw{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.ic-v{background:#EDE9FE;color:#7C3AED}.ic-g{background:#D1FAE5;color:#059669}
+.ic-a{background:#FEF3C7;color:#D97706}.ic-r{background:#FEE2E2;color:#DC2626}.ic-t{background:#E0F2FE;color:#0284C7}
+.cc{background:#fff;border-radius:10px;padding:18px 20px;border:1px solid #EDE9FE}
+.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cc-ttl{font-size:13px;font-weight:700;color:var(--jp)}
+.cc-sub{font-size:11px;color:#9CA3AF}
+.tc{background:#fff;border-radius:10px;border:1px solid #EDE9FE;overflow:hidden}
+.tc-hd{padding:14px 18px;border-bottom:1px solid #EDE9FE;display:flex;align-items:center;justify-content:space-between}
+.tc-hd h6{font-size:13px;font-weight:700;color:var(--jp);margin:0}
+table.dt{width:100%;border-collapse:collapse;font-size:12px}
+table.dt th{padding:9px 14px;text-align:left;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid #EDE9FE;background:#FAFAFA}
+table.dt td{padding:10px 14px;border-bottom:1px solid #F9FAFB;color:#374151;vertical-align:middle}
+table.dt tr:last-child td{border-bottom:none}
+table.dt tr:hover td{background:#FAFAFA}
+.bs{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600}
+.bs-op{background:#FEF3C7;color:#92400E}.bs-cl{background:#D1FAE5;color:#065F46}.bs-pr{background:#EDE9FE;color:#5B21B6}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:55vh;gap:14px}
+.spinner{width:36px;height:36px;border:3px solid #EDE9FE;border-top-color:#7C3AED;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.error-alert{background:#fff0f0;border:1px solid #ffc9c9;border-radius:10px;padding:14px 18px;color:#c92a2a;font-size:13px;margin-bottom:20px}
-/* Panes */
+.err-box{background:#FEE2E2;border:1px solid #FECACA;border-radius:9px;padding:12px 16px;color:#991B1B;font-size:12px;margin-bottom:18px;display:none}
 .pane{display:none}.pane.show{display:block}
-/* Responsive */
+/* Modal de carga protegido */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(26,10,46,.6);z-index:999;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:14px;padding:28px 32px;width:420px;max-width:94vw}
+.modal-box h5{font-size:15px;font-weight:700;color:var(--jp);margin-bottom:6px}
+.modal-box p{font-size:12px;color:#6B7280;margin-bottom:18px}
+.modal-input{width:100%;padding:9px 13px;border:1px solid #EDE9FE;border-radius:8px;font-size:13px;outline:none;transition:.15s;margin-bottom:10px}
+.modal-input:focus{border-color:#7C3AED;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.modal-err{font-size:11px;color:#DC2626;margin-bottom:10px;display:none}
+.btn-modal-ok{width:100%;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px}
+.btn-modal-ok:hover{opacity:.9}
+.btn-modal-cancel{width:100%;padding:9px;border-radius:8px;border:1px solid #EDE9FE;background:#fff;color:#6B7280;font-size:13px;cursor:pointer}
+.upload-panel{display:none;margin-top:16px;padding-top:16px;border-top:1px solid #EDE9FE}
+.drop-area{border:2px dashed #C4B5FD;border-radius:10px;padding:28px;text-align:center;cursor:pointer;color:#7C3AED;transition:.15s;background:#FAFAFA}
+.drop-area:hover{background:#F5F3FF;border-color:#7C3AED}
+.drop-area i{font-size:28px;margin-bottom:8px;display:block}
+.drop-area p{font-size:12px;color:#6B7280;margin-top:4px}
+.chip-area{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.chip{background:#EDE9FE;color:#5B21B6;border-radius:20px;padding:3px 10px;font-size:11px;font-weight:500}
+.btn-load{width:100%;margin-top:12px;padding:9px;border-radius:8px;border:none;background:linear-gradient(135deg,#7C3AED,#4F46E5);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:none}
+.btn-load:hover{opacity:.9}
+/* Botón admin oculto */
+.admin-btn{position:fixed;bottom:18px;right:18px;width:36px;height:36px;border-radius:50%;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.2);color:#7C3AED;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;z-index:150}
+.admin-btn:hover{background:rgba(124,58,237,.25)}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}.topbar{left:0}}
 </style>
 </head>
@@ -82,153 +95,117 @@ table.dash-table tr:hover td{background:#f9fafb}
 
 <!-- Sidebar -->
 <div class="sidebar">
-  <div class="sidebar-brand">
-    <div class="brand-icon">J</div>
+  <div class="sb-brand">
+    <div class="sb-icon">J</div>
     <span>Jelou Support</span>
   </div>
-  <nav class="sidebar-nav">
-    <div class="nav-label">Vistas</div>
-    <div class="nav-item active" id="nav-g" onclick="setView('g')">
-      <i class="fas fa-chart-line"></i> Vista gerencial
-    </div>
-    <div class="nav-item" id="nav-o" onclick="setView('o')">
-      <i class="fas fa-tasks"></i> Vista operacional
-    </div>
-    <div class="nav-label" style="margin-top:12px">Canales</div>
-    <div class="nav-item"><i class="fab fa-whatsapp"></i> WhatsApp / Chat</div>
-    <div class="nav-item"><i class="fas fa-envelope"></i> Correo</div>
-    <div class="nav-item"><i class="fas fa-robot"></i> Agente IA</div>
-    <div class="nav-label" style="margin-top:12px">Info</div>
-    <div class="nav-item"><i class="fas fa-sync-alt"></i> Datos desde Google Sheets</div>
+  <nav class="sb-nav">
+    <div class="nav-lbl">Vistas</div>
+    <div class="ni active" id="nav-g" onclick="setView('g')"><i class="fas fa-chart-line"></i>Vista gerencial</div>
+    <div class="ni" id="nav-o" onclick="setView('o')"><i class="fas fa-tasks"></i>Vista operacional</div>
+    <div class="nav-lbl" style="margin-top:10px">Canales</div>
+    <div class="ni"><i class="fab fa-whatsapp"></i>WhatsApp / Chat</div>
+    <div class="ni"><i class="fas fa-envelope"></i>Correo</div>
+    <div class="ni"><i class="fas fa-robot"></i>Agente IA</div>
   </nav>
-  <div style="padding:16px 24px;border-top:1px solid rgba(255,255,255,.1)">
-    <div style="font-size:11px;color:rgba(255,255,255,.4)" id="last-update">Sin datos aún</div>
+  <div class="sb-foot">
+    <div class="upd" id="last-upd">Sin datos cargados</div>
   </div>
 </div>
 
 <!-- Topbar -->
 <div class="topbar">
-  <div class="topbar-title" id="page-title">Vista gerencial — 2026</div>
-  <div class="topbar-right">
+  <div class="tb-title" id="page-title">Vista gerencial — 2026</div>
+  <div class="tb-right">
     <div class="badge-live" id="live-badge" style="display:none">En vivo</div>
-    <button class="btn-view btn-gerencial active" id="btn-g" onclick="setView('g')">Gerencial</button>
-    <button class="btn-view btn-operacional" id="btn-o" onclick="setView('o')">Operacional</button>
+    <button class="bv bv-g active" id="btn-g" onclick="setView('g')">Gerencial</button>
+    <button class="bv bv-o" id="btn-o" onclick="setView('o')">Operacional</button>
   </div>
 </div>
 
-<!-- Main content -->
+<!-- Main -->
 <div class="main">
-  <div id="error-box" class="error-alert" style="display:none"></div>
+  <div id="err-box" class="err-box"></div>
 
-  <!-- Loading -->
-  <div id="loading" class="loading-screen">
+  <div id="loading" class="loading">
     <div class="spinner"></div>
-    <div style="font-size:14px;color:#93a0b4;font-weight:500">Cargando datos desde Google Sheets...</div>
+    <div style="font-size:13px;color:#9CA3AF;font-weight:500">Cargando datos desde Google Sheets...</div>
   </div>
 
   <!-- Gerencial -->
   <div id="pane-g" class="pane">
-    <div class="row g-3 mb-4" id="g-cards"></div>
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="chart-card">
-          <div class="card-header-custom">
-            <div><div class="card-title">Evolución mensual de tickets</div><div class="card-sub">Tickets abiertos, resueltos y chats IA por mes</div></div>
-          </div>
-          <canvas id="ch-vol" height="90"></canvas>
-        </div>
-      </div>
+    <div class="row g-3 mb-3" id="g-cards"></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de tickets</div><div class="cc-sub">Tickets abiertos, resueltos y chats IA por mes</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT mensual</div><div class="cc-sub">Satisfacción promedio (1–5)</div></div></div><canvas id="ch-csat" height="130"></canvas></div></div>
     </div>
-    <div class="row g-3 mb-4">
-      <div class="col-md-6">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">TTR promedio mensual</div><div class="card-sub">Horas promedio de resolución</div></div></div>
-          <canvas id="ch-ttr" height="140"></canvas>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">CSAT mensual</div><div class="card-sub">Satisfacción promedio (escala 1–5)</div></div></div>
-          <canvas id="ch-csat" height="140"></canvas>
-        </div>
-      </div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-5"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución por canal</div></div></div><canvas id="ch-canal" height="150"></canvas></div></div>
+      <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tickets por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
     </div>
-    <div class="row g-3 mb-4">
-      <div class="col-md-5">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">Distribución por canal</div><div class="card-sub">Chat vs Correo</div></div></div>
-          <canvas id="ch-canal" height="160"></canvas>
-        </div>
-      </div>
-      <div class="col-md-7">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">Tickets por tipo de gestión</div><div class="card-sub">Top categorías</div></div></div>
-          <canvas id="ch-tipo" height="160"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="row g-3">
-      <div class="col-12">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">Rendimiento por agente</div><div class="card-sub">Total tickets y TTR promedio</div></div></div>
-          <canvas id="ch-agente" height="80"></canvas>
-        </div>
-      </div>
-    </div>
+    <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total tickets y TTR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
   </div>
 
   <!-- Operacional -->
   <div id="pane-o" class="pane">
-    <div class="row g-3 mb-4" id="o-cards"></div>
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">Evolución semanal</div><div class="card-sub">Tickets por semana (barras) y CSAT (línea)</div></div></div>
-          <canvas id="ch-sem" height="90"></canvas>
-        </div>
+    <div class="row g-3 mb-3" id="o-cards"></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Tickets (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TTR prom (h)</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Tickets recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
+  </div>
+</div>
+
+<!-- Botón admin discreto -->
+<button class="admin-btn" onclick="openAdmin()" title="Administrador"><i class="fas fa-lock"></i></button>
+
+<!-- Modal admin -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <h5><i class="fas fa-shield-alt me-2" style="color:#7C3AED"></i>Acceso administrador</h5>
+    <p>Ingresa el código para cargar nuevos archivos de datos</p>
+    <input type="password" class="modal-input" id="pwd-input" placeholder="Código de acceso" onkeydown="if(event.key==='Enter')checkPwd()">
+    <div class="modal-err" id="pwd-err">Código incorrecto. Intenta de nuevo.</div>
+    <button class="btn-modal-ok" onclick="checkPwd()">Ingresar</button>
+    <button class="btn-modal-cancel" onclick="closeAdmin()">Cancelar</button>
+
+    <div class="upload-panel" id="upload-panel">
+      <div class="drop-area" onclick="document.getElementById('file-input').click()"
+        ondragover="event.preventDefault()" ondrop="event.preventDefault();handleDrop(event.dataTransfer.files)">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <strong style="font-size:13px;color:#374151">Arrastra los archivos Excel aquí</strong>
+        <p>Canal Chat · Canal Correo · CSAT Operadores · CSAT AI Agent · Chats AI Agent</p>
+        <input type="file" id="file-input" multiple accept=".xlsx,.xls" style="display:none" onchange="handleDrop(this.files)">
       </div>
-    </div>
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="chart-card">
-          <div class="card-header-custom"><div><div class="card-title">TTR semanal promedio (horas)</div><div class="card-sub">Tiempo de resolución por semana</div></div></div>
-          <canvas id="ch-sem-ttr" height="80"></canvas>
-        </div>
-      </div>
-    </div>
-    <div class="row g-3 mb-4">
-      <div class="col-12">
-        <div class="table-card">
-          <div class="table-header"><h6><i class="fas fa-users me-2" style="color:var(--volt-accent)"></i>Carga por agente</h6></div>
-          <div style="overflow-x:auto"><table class="dash-table"><thead><tr><th>Agente</th><th>Total tickets</th><th>Abiertos</th><th>TTR prom (h)</th><th>Estado</th></tr></thead><tbody id="tbl-agentes"></tbody></table></div>
-        </div>
-      </div>
-    </div>
-    <div class="row g-3">
-      <div class="col-12">
-        <div class="table-card">
-          <div class="table-header"><h6><i class="fas fa-ticket-alt me-2" style="color:var(--volt-accent)"></i>Tickets recientes</h6></div>
-          <div style="overflow-x:auto"><table class="dash-table"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th></tr></thead><tbody id="tbl-tickets"></tbody></table></div>
-        </div>
-      </div>
+      <div class="chip-area" id="chip-area"></div>
+      <button class="btn-load" id="btn-load" onclick="loadExcel()">
+        <i class="fas fa-chart-bar me-2"></i>Cargar y actualizar dashboard
+      </button>
     </div>
   </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
 <script>
-const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-let charts={}, currentView='g';
-
-const SHEETS={
+// ══════════════════════════════════════════
+// CONFIGURACIÓN — cambia solo estos valores
+// ══════════════════════════════════════════
+const ADMIN_CODE = "jelou2026";  // <-- TU CONTRASEÑA
+const SHEET_IDS = {
   "Canal Chat.xlsx":      "1MTLalWcAKOceu1HbQZUKZE0mRf2WkVNsyGYHTgqnNS8",
   "Canal Correo.xlsx":    "1CCDKeXEiAly4M2wvvcrwuuYBx3g1fLnd7y3TC18FvpE",
   "Chats AI Agent.xlsx":  "1v_Yf9zYdUMrDy1SMKimS69E59YMqozsCM8FUctMp5vY",
   "CSAT AI Agent.xlsx":   "11FwtOLXlLvjxFt3zcK_rK47TYNgifulw_OBfiw-o3nk",
   "CSAT Operadores.xlsx": "1oC5d9MgDCLwdSS7YzPdeqicymjQB0fmhSEUV5LLnIls",
 };
+// ══════════════════════════════════════════
 
-function parseDateField(v){
+const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+let charts={}, currentView='g', pendingFiles={};
+
+// ── Parsing helpers ──────────────────────
+function parseD(v){
   if(!v)return null;
   if(v instanceof Date)return isNaN(v)?null:v;
   const s=String(v).trim();if(!s)return null;
@@ -237,273 +214,228 @@ function parseDateField(v){
   if(p.length===3){const a=new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);if(!isNaN(a))return a;}
   return null;
 }
-const is2026=d=>d&&d.getFullYear()===2026;
-const monthLabel=d=>d?MONTHS[d.getMonth()]:"";
-function weekLabel(d){
-  if(!d)return"";
-  const j=new Date(d.getFullYear(),0,1);
-  return`S${Math.ceil(((d-j)/86400000+j.getDay()+1)/7)}`;
-}
-function standardizeCsat(val){
-  if(val===null||val===undefined||val==="")return null;
-  const n=parseFloat(String(val).replace(",","."));
+const is26=d=>d&&d.getFullYear()===2026;
+const mLbl=d=>d?MONTHS[d.getMonth()]:"";
+const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);return`S${Math.ceil(((d-j)/86400000+j.getDay()+1)/7)}`;};
+function csat(v){
+  if(v===null||v===undefined||v==="")return null;
+  const n=parseFloat(String(v).replace(",","."));
   if(!isNaN(n)&&n>=1&&n<=5)return n;
   if(!isNaN(n)&&n>=6&&n<=10)return Math.round(n/2);
-  const s=String(val).toLowerCase();
+  const s=String(v).toLowerCase();
   if(["sí","si","yes","satisfecho","bueno","excelente","muy bien"].some(x=>s.includes(x)))return 5;
   if(["regular","neutral","más o menos"].some(x=>s.includes(x)))return 3;
   if(["no","mal","insatisfecho","no realmente","pésimo"].some(x=>s.includes(x)))return 2;
   return null;
 }
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
-const groupBy=(arr,fn)=>arr.reduce((acc,x)=>{const k=fn(x)||"Sin dato";(acc[k]=acc[k]||[]).push(x);return acc;},{});
-const isClosed=e=>{const s=(e||"").toLowerCase();return s.includes("cerr")||s.includes("resuel")||s==="close"||s==="closed";};
+const grp=(arr,fn)=>arr.reduce((acc,x)=>{const k=fn(x)||"Sin dato";(acc[k]=acc[k]||[]).push(x);return acc;},{});
+const closed=e=>{const s=(e||"").toLowerCase();return s.includes("cerr")||s.includes("resuel")||s==="close"||s==="closed";};
 
-async function fetchSheetCSV(id){
-  const url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
-  const res=await fetch(url,{redirect:'follow'});
-  if(!res.ok)throw new Error(`HTTP ${res.status} — verifica que el Sheet sea público (Lector)`);
-  const text=await res.text();
-  if(text.trim().startsWith('<!DOCTYPE')||text.trim().startsWith('<html'))
-    throw new Error(`El Sheet ${id} no es público. Ve a Compartir → Cualquiera con el enlace → Lector`);
-  return parseCSV(text);
-}
+// ── CSV parser (para Google Sheets) ─────
 function parseCSV(text){
   const lines=text.split('\n').filter(l=>l.trim());
   if(!lines.length)return[];
-  const headers=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
+  const hdrs=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
   return lines.slice(1).map(line=>{
     const vals=[];let cur='',inQ=false;
-    for(const ch of line){
-      if(ch==='"')inQ=!inQ;
-      else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}
-      else cur+=ch;
-    }
+    for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}
     vals.push(cur.trim());
-    const obj={};
-    headers.forEach((h,i)=>obj[h]=vals[i]??'');
-    return obj;
+    const o={};hdrs.forEach((h,i)=>o[h]=vals[i]??'');return o;
   });
 }
 
-function processFiles(raw){
-  const chat=raw["Canal Chat.xlsx"]||[];
-  const correo=raw["Canal Correo.xlsx"]||[];
-  const csatOp=raw["CSAT Operadores.xlsx"]||[];
-  const chatsAI=raw["Chats AI Agent.xlsx"]||[];
+// ── Process data ─────────────────────────
+function process(raw){
+  const chat=raw["Canal Chat.xlsx"]||[],correo=raw["Canal Correo.xlsx"]||[];
+  const csatOp=raw["CSAT Operadores.xlsx"]||[],aiChatsRaw=raw["Chats AI Agent.xlsx"]||[];
   const tmap={};
-  const addRow=(row,source)=>{
-    const ticket=String(row["Ticket"]||row["Numero de registro"]||"").trim();
-    if(!ticket)return;
-    const fc=parseDateField(row["Fecha creacion"]||row["Fecha de creación"]);
-    const fci=parseDateField(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
-    if(!is2026(fc))return;
-    if(!tmap[ticket])tmap[ticket]={
-      ticket,source,
-      agente:row["Tech Support"]||row["Resuelto por"]||"",
-      tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",
-      estado:row["Estado"]||"",
-      canal:source==="chat"?(row["Canal"]||"Chat"):"Correo",
-      fc,fci,
-      ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,
-      mesLabel:fc?monthLabel(fc):"",
-      semana:fc?weekLabel(fc):"",
-    };
+  const add=(row,src)=>{
+    const tk=String(row["Ticket"]||row["Numero de registro"]||"").trim();
+    if(!tk)return;
+    const fc=parseD(row["Fecha creacion"]||row["Fecha de creación"]);
+    const fci=parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
+    if(!is26(fc))return;
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
   };
-  chat.forEach(r=>addRow(r,"chat"));
-  correo.forEach(r=>addRow(r,"correo"));
+  chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
-  const csatRows=csatOp.filter(r=>is2026(parseDateField(r["Fecha de creación"]))).map(r=>({
-    csat:standardizeCsat(r["Satisfacion"]),fecha:parseDateField(r["Fecha de creación"]),operador:r["Operador"]||""
-  })).filter(r=>r.csat!==null);
-  const aiChats=chatsAI.filter(r=>is2026(parseDateField(r["Fecha de creación"]))).map(r=>({
-    fecha:parseDateField(r["Fecha de creación"]),mesLabel:monthLabel(parseDateField(r["Fecha de creación"])),semana:weekLabel(parseDateField(r["Fecha de creación"]))
-  }));
+  const csatRows=csatOp.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({v:csat(r["Satisfacion"]),f:parseD(r["Fecha de creación"])})).filter(r=>r.v!==null);
+  const aiChats=aiChatsRaw.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({f:parseD(r["Fecha de creación"]),mLbl:mLbl(parseD(r["Fecha de creación"])),wLbl:wLbl(parseD(r["Fecha de creación"]))}));
   return{tickets,csatRows,aiChats};
 }
 
-async function loadData(){
-  document.getElementById('loading').style.display='flex';
-  document.getElementById('pane-g').classList.remove('show');
-  document.getElementById('pane-o').classList.remove('show');
-  document.getElementById('error-box').style.display='none';
+// ── Google Sheets loader ─────────────────
+async function loadSheets(){
+  showLoading(true);showErr(null);
   try{
     const raw={};
-    for(const[name,id]of Object.entries(SHEETS)){
-      try{
-        raw[name]=await fetchSheetCSV(id);
-      }catch(e){
-        throw new Error(`"${name}": ${e.message}`);
-      }
+    for(const[name,id]of Object.entries(SHEET_IDS)){
+      const url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
+      const res=await fetch(url,{redirect:'follow'});
+      if(!res.ok)throw new Error(`"${name}" no accesible (HTTP ${res.status})`);
+      const txt=await res.text();
+      if(txt.trim().startsWith('<'))throw new Error(`"${name}" no es público`);
+      raw[name]=parseCSV(txt);
     }
-    const data=processFiles(raw);
-    document.getElementById('loading').style.display='none';
-    document.getElementById('live-badge').style.display='flex';
-    document.getElementById('last-update').textContent=`Actualizado: ${new Date().toLocaleString('es-CO')}`;
-    renderGerencial(data);
-    renderOperacional(data);
-    setView(currentView);
+    render(process(raw));
   }catch(e){
-    document.getElementById('loading').style.display='none';
-    const eb=document.getElementById('error-box');
-    eb.style.display='block';
-    eb.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i><strong>Error cargando datos:</strong> ${e.message}`;
+    showLoading(false);
+    showErr(`No se pudo cargar desde Google Sheets: ${e.message}. Usa el botón admin 🔒 para cargar manualmente.`);
+    document.getElementById('pane-g').classList.add('show');
+    document.getElementById('pane-o').classList.remove('show');
   }
 }
 
-function mkChart(id,config){
+// ── Excel manual loader ──────────────────
+function handleDrop(files){
+  Array.from(files).forEach(f=>{
+    pendingFiles[f.name]=f;
+  });
+  const chips=document.getElementById('chip-area');
+  chips.innerHTML=Object.keys(pendingFiles).map(n=>`<span class="chip">${n}</span>`).join('');
+  const btn=document.getElementById('btn-load');
+  btn.style.display=Object.keys(pendingFiles).length>0?'block':'none';
+}
+
+async function loadExcel(){
+  showLoading(true);showErr(null);closeAdmin();
+  try{
+    const raw={};
+    for(const[name,file]of Object.entries(pendingFiles)){
+      const buf=await file.arrayBuffer();
+      const wb=XLSX.read(buf,{type:'arraybuffer',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      raw[name]=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
+    }
+    render(process(raw));
+  }catch(e){
+    showLoading(false);showErr('Error procesando Excel: '+e.message);
+  }
+}
+
+// ── Render ───────────────────────────────
+function render(data){
+  showLoading(false);
+  document.getElementById('live-badge').style.display='flex';
+  document.getElementById('last-upd').textContent=`Actualizado: ${new Date().toLocaleString('es-CO')}`;
+  renderG(data);renderO(data);setView(currentView);
+}
+
+function mk(id,cfg){
   if(charts[id]){charts[id].destroy();delete charts[id];}
   const ctx=document.getElementById(id)?.getContext('2d');
-  if(!ctx)return;
-  charts[id]=new Chart(ctx,config);
+  if(ctx)charts[id]=new Chart(ctx,cfg);
+}
+const GO={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{size:11},boxWidth:11}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}}}};
+
+function sCard(lbl,val,sub,cls,ico,ic){
+  return`<div class="col-6 col-md-4 col-lg"><div class="sc d-flex justify-content-between align-items-start"><div><div class="lbl">${lbl}</div><div class="val">${val??'—'}</div><div class="tr ${cls||'tr-n'}">${sub||''}</div></div><div class="iw ${ic}"><i class="${ico}"></i></div></div></div>`;
 }
 
-function statCard(label,value,sub,subClass,iconClass,iconColor){
-  return`<div class="col-6 col-md-4 col-lg">
-    <div class="stat-card d-flex justify-content-between align-items-start">
-      <div>
-        <div class="label">${label}</div>
-        <div class="value">${value??'—'}</div>
-        <div class="trend ${subClass||'trend-neutral'}">${sub||''}</div>
-      </div>
-      <div class="icon-wrap ${iconColor}"><i class="${iconClass}"></i></div>
-    </div>
-  </div>`;
-}
-
-function renderGerencial(data){
-  const{tickets,csatRows,aiChats}=data;
-  const bm=groupBy(tickets,t=>t.mesLabel);
-  const cm=groupBy(csatRows.filter(r=>r.fecha),r=>monthLabel(r.fecha));
-  const am=groupBy(aiChats,r=>r.mesLabel);
+function renderG(d){
+  const{tickets,csatRows,aiChats}=d;
+  const bm=grp(tickets,t=>t.mLbl),cm=grp(csatRows.filter(r=>r.f),r=>mLbl(r.f)),am=grp(aiChats,r=>r.mLbl);
   const meses=MONTHS.filter(m=>bm[m]||cm[m]||am[m]);
-
   const evo=meses.map(m=>{
     const ts=bm[m]||[],cs=cm[m]||[],ai=am[m]||[];
-    const ttrs=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-    return{mes:m,tickets:ts.length,cerrados:ts.filter(t=>isClosed(t.estado)).length,
-      csat:cs.length?+avg(cs.map(c=>c.csat)).toFixed(2):null,
-      ttr:ttrs.length?+avg(ttrs).toFixed(1):null,ai:ai.length};
+    const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
+    return{m,tk:ts.length,cl:ts.filter(t=>closed(t.estado)).length,cs:cs.length?+avg(cs.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null,ai:ai.length};
   });
-
-  const total=tickets.length;
-  const cerrados=tickets.filter(t=>isClosed(t.estado)).length;
-  const pct=total?Math.round(cerrados/total*100):0;
-  const ttrsAll=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-  const ttrAvg=ttrsAll.length?+avg(ttrsAll).toFixed(1):null;
-  const csatAvg=csatRows.length?+avg(csatRows.map(c=>c.csat)).toFixed(2):null;
-
+  const tot=tickets.length,cl=tickets.filter(t=>closed(t.estado)).length,pct=tot?Math.round(cl/tot*100):0;
+  const ttA=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
+  const ttrA=ttA.length?+avg(ttA).toFixed(1):null;
+  const csA=csatRows.length?+avg(csatRows.map(c=>c.v)).toFixed(2):null;
   document.getElementById('g-cards').innerHTML=
-    statCard('Tickets 2026',total.toLocaleString(),'Total acumulado','trend-neutral','fas fa-ticket-alt','ic-blue')+
-    statCard('Resueltos',cerrados.toLocaleString(),`${pct}% del total`,pct>=70?'trend-up':'trend-down','fas fa-check-circle','ic-green')+
-    statCard('TTR promedio',ttrAvg?`${ttrAvg}h`:'—','Tiempo de resolución','trend-neutral','fas fa-clock','ic-amber')+
-    statCard('CSAT promedio',csatAvg?`${csatAvg}/5`:'—',csatAvg?(csatAvg>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csatAvg?(csatAvg>=4?'trend-up':'trend-down'),'fas fa-star','ic-teal')+
-    statCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','trend-neutral','fas fa-robot','ic-red');
-
-  const gridOpts={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'#f3f4f6'},ticks:{font:{size:11}}}}};
-
-  mkChart('ch-vol',{type:'line',data:{labels:meses,datasets:[
-    {label:'Tickets',data:evo.map(e=>e.tickets),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.08)',fill:true,borderWidth:2,pointRadius:4,tension:.3},
-    {label:'Resueltos',data:evo.map(e=>e.cerrados),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:4,tension:.3},
-    {label:'Chats IA',data:evo.map(e=>e.ai),borderColor:'#F59E0B',backgroundColor:'transparent',borderWidth:2,pointRadius:4,tension:.3,borderDash:[4,4]},
-  ]},options:gridOpts});
-
-  const ttrMes=evo.filter(e=>e.ttr);
-  mkChart('ch-ttr',{type:'bar',data:{labels:ttrMes.map(e=>e.mes),datasets:[{label:'TTR (h)',data:ttrMes.map(e=>e.ttr),backgroundColor:'rgba(9,72,179,.75)',borderRadius:6}]},options:{...gridOpts,plugins:{legend:{display:false}}}});
-
-  const csatMes=evo.filter(e=>e.csat);
-  mkChart('ch-csat',{type:'line',data:{labels:csatMes.map(e=>e.mes),datasets:[{label:'CSAT',data:csatMes.map(e=>e.csat),borderColor:'#05A677',backgroundColor:'rgba(5,166,119,.08)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...gridOpts,scales:{...gridOpts.scales,y:{...gridOpts.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
-
-  const bc=groupBy(tickets,t=>t.canal);
-  const canalD=Object.entries(bc).map(([c,a])=>({c,n:a.length}));
-  mkChart('ch-canal',{type:'doughnut',data:{labels:canalD.map(d=>d.c),datasets:[{data:canalD.map(d=>d.n),backgroundColor:['#0948B3','#05A677','#F5A623','#FA5252'],borderWidth:0,hoverOffset:6}]},options:{responsive:true,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12,padding:12}}}}});
-
-  const bt=groupBy(tickets.filter(t=>t.tipo),t=>t.tipo);
-  const tipoD=Object.entries(bt).map(([t,a])=>({tipo:t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
-  mkChart('ch-tipo',{type:'bar',data:{labels:tipoD.map(d=>d.tipo),datasets:[{label:'Tickets',data:tipoD.map(d=>d.n),backgroundColor:'rgba(9,72,179,.75)',borderRadius:4}]},options:{...gridOpts,indexAxis:'y',plugins:{legend:{display:false}}}});
-
-  const ba=groupBy(tickets.filter(t=>t.agente),t=>t.agente);
-  const agD=Object.entries(ba).map(([a,ts])=>{
-    const ttrs=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-    return{a:a.split(" ")[0],total:ts.length,ttr:ttrs.length?+avg(ttrs).toFixed(1):0};
-  }).sort((a,b)=>b.total-a.total).slice(0,10);
-  mkChart('ch-agente',{type:'bar',data:{labels:agD.map(d=>d.a),datasets:[
-    {label:'Tickets',data:agD.map(d=>d.total),backgroundColor:'rgba(9,72,179,.75)',borderRadius:4},
-    {label:'TTR prom (h)',data:agD.map(d=>d.ttr),backgroundColor:'rgba(245,166,35,.75)',borderRadius:4},
-  ]},options:gridOpts});
+    sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
+    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
+    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-a')+
+    sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-t')+
+    sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r');
+  mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
+    {label:'Tickets',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
+    {label:'Resueltos',data:evo.map(e=>e.cl),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
+    {label:'Chats IA',data:evo.map(e=>e.ai),borderColor:'#F59E0B',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:.3,borderDash:[4,4]},
+  ]},options:GO});
+  const tm=evo.filter(e=>e.ttr);
+  mk('ch-ttr',{type:'bar',data:{labels:tm.map(e=>e.m),datasets:[{label:'TTR (h)',data:tm.map(e=>e.ttr),backgroundColor:'rgba(124,58,237,.7)',borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const cm2=evo.filter(e=>e.cs);
+  mk('ch-csat',{type:'line',data:{labels:cm2.map(e=>e.m),datasets:[{label:'CSAT',data:cm2.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
+  const bc=grp(tickets,t=>t.canal);const cd=Object.entries(bc).map(([c,a])=>({c,n:a.length}));
+  mk('ch-canal',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}}}});
+  const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
+  mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
+  const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
+  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
 }
 
-function renderOperacional(data){
-  const{tickets,csatRows,aiChats}=data;
-  const bs=groupBy(tickets,t=>t.semana);
-  const cs=groupBy(csatRows.filter(r=>r.fecha),r=>weekLabel(r.fecha));
-  const semanas=[...new Set([...Object.keys(bs),...Object.keys(cs)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
-
-  const evo=semanas.map(s=>{
-    const ts=bs[s]||[],csr=cs[s]||[];
-    const ttrs=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-    return{s,tickets:ts.length,csat:csr.length?+avg(csr.map(c=>c.csat)).toFixed(2):null,ttr:ttrs.length?+avg(ttrs).toFixed(1):null};
-  });
-
-  const ult=evo[evo.length-1]||{};
-  const abiertos=tickets.filter(t=>!isClosed(t.estado)).length;
-  const ba=groupBy(tickets.filter(t=>t.agente),t=>t.agente);
-  const agentes=Object.entries(ba).map(([a,ts])=>{
-    const ab=ts.filter(t=>!isClosed(t.estado)).length;
-    const ttrs=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-    return{a,total:ts.length,abiertos:ab,ttr:ttrs.length?+avg(ttrs).toFixed(1):null};
-  }).sort((a,b)=>b.total-a.total);
-
+function renderO(d){
+  const{tickets,csatRows,aiChats}=d;
+  const bs=grp(tickets,t=>t.wLbl),cs=grp(csatRows.filter(r=>r.f),r=>wLbl(r.f));
+  const sems=[...new Set([...Object.keys(bs),...Object.keys(cs)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const evo=sems.map(s=>{const ts=bs[s]||[],csr=cs[s]||[];const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{s,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null};});
+  const ult=evo[evo.length-1]||{},ab=tickets.filter(t=>!closed(t.estado)).length;
+  const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
+  const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null};}).sort((a,b)=>b.tot-a.tot);
   document.getElementById('o-cards').innerHTML=
-    statCard('Tickets esta semana',ult.tickets??'—','Semana en curso','trend-neutral','fas fa-inbox','ic-blue')+
-    statCard('Tickets abiertos',abiertos,abiertos>20?'Revisión recomendada':'Nivel normal',abiertos>20?'trend-down':'trend-up','fas fa-folder-open','ic-amber')+
-    statCard('CSAT esta semana',ult.csat?`${ult.csat}/5`:'—','Satisfacción','trend-neutral','fas fa-smile','ic-green')+
-    statCard('TTR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','trend-neutral','fas fa-hourglass-half','ic-teal')+
-    statCard('Agentes activos',agentes.length,'Con tickets asignados','trend-neutral','fas fa-user-tie','ic-red');
-
-  const gridOpts={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{size:11},boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f3f4f6'},ticks:{font:{size:11}}}}};
-
-  mkChart('ch-sem',{type:'bar',data:{labels:semanas,datasets:[
-    {type:'bar',label:'Tickets',data:evo.map(e=>e.tickets),backgroundColor:'rgba(9,72,179,.7)',borderRadius:4,yAxisID:'y'},
-    {type:'line',label:'CSAT',data:evo.map(e=>e.csat),borderColor:'#05A677',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
-  ]},options:{...gridOpts,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#f3f4f6'},ticks:{font:{size:11}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:11}}}}}});
-
-  const ttrSem=evo.filter(e=>e.ttr);
-  mkChart('ch-sem-ttr',{type:'bar',data:{labels:ttrSem.map(e=>e.s),datasets:[{label:'TTR (h)',data:ttrSem.map(e=>e.ttr),backgroundColor:'rgba(245,166,35,.75)',borderRadius:4}]},options:{...gridOpts,plugins:{legend:{display:false}}}});
-
-  document.getElementById('tbl-agentes').innerHTML=agentes.slice(0,15).map(a=>`
-    <tr>
-      <td><strong>${a.a}</strong></td>
-      <td>${a.total}</td>
-      <td><span style="color:${a.abiertos>5?'#e65100':'#00695c'};font-weight:600">${a.abiertos}</span></td>
-      <td><span style="color:${a.ttr&&a.ttr>24?'#c92a2a':'var(--volt-text)'};font-weight:${a.ttr&&a.ttr>24?700:400}">${a.ttr?a.ttr+'h':'—'}</span></td>
-      <td><span class="badge-status ${a.abiertos>5?'bs-open':'bs-closed'}">${a.abiertos>5?'Carga alta':'Normal'}</span></td>
-    </tr>`).join('');
-
-  const recientes=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
-  document.getElementById('tbl-tickets').innerHTML=recientes.map(t=>`
-    <tr>
-      <td><code style="font-size:11px;color:#0948B3">${String(t.ticket).slice(0,14)}</code></td>
-      <td>${t.tipo||'—'}</td>
-      <td><span class="badge-status bs-progress">${t.canal}</span></td>
-      <td>${(t.agente||'').split(' ')[0]||'—'}</td>
-      <td><span class="badge-status ${isClosed(t.estado)?'bs-closed':'bs-open'}">${t.estado||'—'}</span></td>
-      <td style="color:#93a0b4;font-size:12px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td>
-    </tr>`).join('');
+    sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v')+
+    sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a')+
+    sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g')+
+    sCard('TTR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t')+
+    sCard('Agentes',ags.length,'Con tickets asignados','tr-n','fas fa-user-tie','ic-r');
+  mk('ch-sem',{type:'bar',data:{labels:sems,datasets:[
+    {type:'bar',label:'Tickets',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
+    {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
+  ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}}}});
+  const ts2=evo.filter(e=>e.ttr);
+  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TTR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>5?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>24?'#DC2626':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td><span class="bs ${a.op>5?'bs-op':'bs-cl'}">${a.op>5?'Carga alta':'Normal'}</span></td></tr>`).join('');
+  const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
+  document.getElementById('tbl-tk').innerHTML=rec.map(t=>`<tr><td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td><td>${t.tipo||'—'}</td><td><span class="bs bs-pr">${t.canal}</span></td><td>${(t.agente||'').split(' ')[0]||'—'}</td><td><span class="bs ${closed(t.estado)?'bs-cl':'bs-op'}">${t.estado||'—'}</span></td><td style="color:#9CA3AF;font-size:11px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td></tr>`).join('');
 }
 
+// ── UI helpers ───────────────────────────
 function setView(v){
   currentView=v;
-  document.getElementById('pane-g').className='pane'+(v==='g'?' show':'');
-  document.getElementById('pane-o').className='pane'+(v==='o'?' show':'');
-  document.getElementById('nav-g').className='nav-item'+(v==='g'?' active':'');
-  document.getElementById('nav-o').className='nav-item'+(v==='o'?' active':'');
-  document.getElementById('btn-g').className='btn-view btn-gerencial'+(v==='g'?' active':'');
-  document.getElementById('btn-o').className='btn-view btn-operacional'+(v==='o'?' active':'');
+  ['g','o'].forEach(x=>{
+    document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
+    document.getElementById(`nav-${x}`).className='ni'+(v===x?' active':'');
+    document.getElementById(`btn-${x}`).className=`bv bv-${x}`+(v===x?' active':'');
+  });
   document.getElementById('page-title').textContent=v==='g'?'Vista gerencial — 2026':'Vista operacional — 2026';
 }
+function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
+function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
 
-window.addEventListener('load',()=>loadData());
+// ── Admin modal ──────────────────────────
+function openAdmin(){document.getElementById('modal-overlay').classList.add('show');document.getElementById('pwd-input').focus();}
+function closeAdmin(){
+  document.getElementById('modal-overlay').classList.remove('show');
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-err').style.display='none';
+  document.getElementById('upload-panel').style.display='none';
+  document.getElementById('chip-area').innerHTML='';
+  document.getElementById('btn-load').style.display='none';
+  pendingFiles={};
+}
+function checkPwd(){
+  const v=document.getElementById('pwd-input').value;
+  if(v===ADMIN_CODE){
+    document.getElementById('pwd-err').style.display='none';
+    document.getElementById('upload-panel').style.display='block';
+    document.getElementById('pwd-input').closest('.modal-box').querySelector('p').textContent='Acceso concedido. Sube los archivos Excel para actualizar el dashboard.';
+    document.querySelectorAll('.modal-input,.btn-modal-ok').forEach(el=>el.style.display='none');
+  }else{
+    document.getElementById('pwd-err').style.display='block';
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-input').focus();
+  }
+}
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
+
+// ── Init ─────────────────────────────────
+window.addEventListener('load',()=>loadSheets());
 </script>
 </body>
 </html>
