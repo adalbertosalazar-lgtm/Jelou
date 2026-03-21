@@ -114,6 +114,11 @@ table.dt tr:hover td{background:#FAFAFA}
 .tramo-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .tramo-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#6B7280}
 .tramo-dot{width:8px;height:8px;border-radius:50%}
+.hm-wrap{overflow-x:auto}
+.hm-table{border-collapse:collapse;font-size:11px;min-width:100%}
+.hm-table th{padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;border-bottom:1px solid #EDE9FE;background:#FAFAFA;white-space:nowrap}
+.hm-table td{padding:5px 8px;border:1px solid #F3F4F6;text-align:center;font-size:11px;font-weight:600;min-width:52px}
+.hm-agent{text-align:left!important;font-weight:600!important;color:#374151;white-space:nowrap;padding-left:12px!important}
 </style>
 </head>
 <body>
@@ -135,6 +140,7 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="nav-lbl" style="margin-top:10px">Análisis</div>
     <div class="ni" id="nav-sla" onclick="setView('sla')"><i class="fas fa-exclamation-triangle"></i>Análisis SLA</div>
   </nav>
+  <div class="ni" id="nav-glos" onclick="setView('glos')" style="margin:8px 12px;border-radius:8px"><i class="fas fa-book"></i>Glosario</div>
   <div class="sb-foot">
     <div class="upd" id="last-upd">Sin datos cargados</div>
   </div>
@@ -164,14 +170,15 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="row g-3 mb-3" id="g-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de tickets</div><div class="cc-sub">Tickets abiertos, resueltos y chats IA por mes</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT mensual</div><div class="cc-sub">Satisfacción promedio (1–5)</div></div></div><canvas id="ch-csat" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3">
       <div class="col-md-5"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución por canal</div></div></div><canvas id="ch-canal" height="150"></canvas></div></div>
       <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tickets por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
     </div>
-    <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total tickets y TTR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total tickets y TMR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR por agente y mes (horas)</div><div class="cc-sub">Resuelto por — escala de color: verde &lt;1h · amarillo 1-2h · rojo &gt;2h</div></div></div><div class="hm-wrap" id="hm-agente-mes"></div></div></div></div>
   </div>
 
   <!-- Detalle -->
@@ -194,7 +201,7 @@ table.dt tr:hover td{background:#FAFAFA}
               <th class="th-sort" onclick="sortDetail('estado')">Estado</th>
               <th class="th-sort" onclick="sortDetail('fc')">Fecha creación</th>
               <th class="th-sort" onclick="sortDetail('fci')">Fecha cierre</th>
-              <th class="th-sort" onclick="sortDetail('ttr')">TTR (h)</th>
+              <th class="th-sort" onclick="sortDetail('ttr')">TMR (h)</th>
             </tr>
           </thead>
           <tbody id="det-body"></tbody>
@@ -212,10 +219,10 @@ table.dt tr:hover td{background:#FAFAFA}
     </div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Chat</div></div></div><canvas id="ch-ch-tipo" height="150"></canvas></div></div>
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR mensual (horas) — Chat</div></div></div><canvas id="ch-ch-ttr" height="150"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR mensual (horas) — Chat</div></div></div><canvas id="ch-ch-ttr" height="150"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Chat</div></div></div><canvas id="ch-ch-ag" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Tickets recientes — Chat</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Canal</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TTR</th></tr></thead><tbody id="tbl-ch"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Tickets recientes — Chat</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Canal</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-ch"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Canal Correo -->
@@ -223,11 +230,11 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="row g-3 mb-3" id="co-cards"></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Correo</div><div class="cc-sub">Total tickets por mes</div></div></div><canvas id="ch-co-vol" height="130"></canvas></div></div>
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR mensual (horas) — Correo</div></div></div><canvas id="ch-co-ttr" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR mensual (horas) — Correo</div></div></div><canvas id="ch-co-ttr" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Correo</div></div></div><canvas id="ch-co-tipo" height="90"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Correo</div></div></div><canvas id="ch-co-ag" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-envelope me-2" style="color:#7C3AED"></i>Tickets recientes — Correo</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TTR</th></tr></thead><tbody id="tbl-co"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-envelope me-2" style="color:#7C3AED"></i>Tickets recientes — Correo</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-co"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Agente IA -->
@@ -244,24 +251,69 @@ table.dt tr:hover td{background:#FAFAFA}
   <div id="pane-sla" class="pane">
     <div class="row g-3 mb-3" id="sla-cards"></div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TTR — Todos los canales</div><div class="cc-sub">Tickets por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TMR — Todos los canales</div><div class="cc-sub">Tickets por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">SLA Compliance mensual</div><div class="cc-sub">% tickets resueltos en &lt;60 min por mes</div></div></div><canvas id="ch-sla-trend" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por canal</div><div class="cc-sub">Tickets que incumplieron &gt;60 min</div></div></div><canvas id="ch-sla-canal" height="150"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por tipo de gestión</div><div class="cc-sub">Top tipos con mayor incumplimiento</div></div></div><canvas id="ch-sla-tipo" height="150"></canvas></div></div>
     </div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT vs TTR — Impacto del tiempo en satisfacción</div><div class="cc-sub">CSAT promedio por tramo de resolución</div></div></div><canvas id="ch-sla-csat" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-exclamation-circle me-2" style="color:#EF4444"></i>Tickets que incumplieron SLA (&gt;60 min)</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Agente</th><th>Canal</th><th>Tipo de gestión</th><th>Estado</th><th>TTR real</th><th>Exceso</th></tr></thead><tbody id="tbl-breach"></tbody></table></div></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT vs TMR — Impacto del tiempo en satisfacción</div><div class="cc-sub">CSAT promedio por tramo de resolución</div></div></div><canvas id="ch-sla-csat" height="75"></canvas></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-exclamation-circle me-2" style="color:#EF4444"></i>Tickets que incumplieron SLA (&gt;60 min)</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Agente</th><th>Canal</th><th>Tipo de gestión</th><th>Estado</th><th>TMR real</th><th>Exceso</th></tr></thead><tbody id="tbl-breach"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Operacional -->
   <div id="pane-o" class="pane">
     <div class="row g-3 mb-3" id="o-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Tickets (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TTR prom (h)</th><th>SLA <60min</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TMR prom (h)</th><th>SLA <60min</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
     <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Tickets recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th><th>Transcurrido</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
+  </div>
+</div>
+
+<!-- Glosario -->
+<div id="pane-glos" class="pane">
+  <div style="max-width:860px">
+    <div class="cc mb-3">
+      <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-book me-2" style="color:#7C3AED"></i>Glosario de métricas</div><div class="cc-sub">Definiciones y criterios de medición del dashboard de soporte Jelou</div></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="cc h-100">
+          <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Métricas de tiempo</div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">TMR — Tiempo Medio de Resolución</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo promedio desde que se crea un ticket hasta que se cierra con estado "Resuelto". Se calcula en horas. Meta del equipo: <strong style="color:#7C3AED">&lt;1 hora</strong>.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">SLA &lt;60 min</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Porcentaje de tickets resueltos con TMR menor o igual a 60 minutos sobre el total de tickets con resolución registrada. Meta: <strong style="color:#7C3AED">&ge;85%</strong>. Alerta: &lt;70%.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Breach</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Ticket que incumplió la meta de resolución. Un breach ocurre cuando el TMR supera los 60 minutos. El exceso indica cuánto tiempo adicional tomó sobre la meta.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Transcurrido</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo que lleva abierto un ticket actualmente (no resuelto). Se colorea: verde &lt;45 min, naranja 45-60 min, rojo &gt;60 min.</div></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="cc h-100">
+          <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Métricas de calidad</div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">CSAT — Customer Satisfaction Score</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Puntuación de satisfacción del cliente en escala 1-5. Se obtiene de encuestas post-cierre. Meta: <strong style="color:#7C3AED">&ge;4.0</strong>. Fuente: archivo CSAT Operadores.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Único estado que cuenta como ticket concluido. Los estados Escalado, Investigando, Solicitud Interna, Abierto, Pendiente y Respuesta cliente se consideran abiertos.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Desestimado</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets excluidos de todos los cálculos. No se contabilizan en volumen, TMR, ni SLA compliance.</div></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="cc h-100">
+          <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Canales</div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — Web</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos vía chat en plataforma web. Canal síncrono: el usuario está presente durante la conversación. Mayor tasa de resolución rápida.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — WhatsApp</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos vía WhatsApp. Canal semi-asíncrono: el tiempo de respuesta del cliente puede inflar el TMR. Requiere interpretación cuidadosa del SLA.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Correo</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos por correo electrónico. Canal asíncrono con mayor varianza en TMR. La meta de &lt;60 min es muy agresiva para este canal.</div></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="cc h-100">
+          <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Campos del sistema</div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Tech Support</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente asignado al ticket. Aparece en vistas de rendimiento por agente y tabla de carga operacional.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto por</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente que efectivamente cerró el ticket. Puede diferir de Tech Support. Se usa en la matriz de TMR por agente y mes.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Agente IA</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Conversaciones manejadas por el agente de inteligencia artificial de Jelou antes de escalar a un agente humano. Fuente: Chats AI Agent.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Actualizado hasta</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Fecha del registro más reciente en los archivos cargados. Indica hasta qué punto en el tiempo el dashboard refleja datos reales.</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -424,7 +476,7 @@ function process(raw){
     const fc=parseD(row["Fecha creacion"]||row["Fecha de creación"]);
     const fci=parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
     if(!is26(fc))return;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
@@ -494,8 +546,10 @@ function render(data,savedAt){
   showLoading(false);
   window._dashData=data;
   document.getElementById('live-badge').style.display='flex';
-  const fecha=savedAt?new Date(savedAt).toLocaleString('es-CO'):new Date().toLocaleString('es-CO');
-  document.getElementById('last-upd').textContent=`Última carga: ${fecha}`;
+  const allDates=data.tickets.map(t=>t.fc).filter(Boolean);
+  const maxDate=allDates.length?new Date(Math.max(...allDates.map(d=>d instanceof Date?d.getTime():new Date(d).getTime()))):null;
+  const fechaStr=maxDate&&!isNaN(maxDate)?maxDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):(savedAt?new Date(savedAt).toLocaleDateString('es-CO'):'—');
+  document.getElementById('last-upd').textContent=`Actualizado hasta: ${fechaStr}`;
   renderG(data);renderO(data);setView(currentView);
 }
 
@@ -533,7 +587,7 @@ function renderG(d){
     sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los tickets')")+
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Tickets resueltos')")+
     sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'Sin datos',slaCls,'fas fa-bullseye','ic-a',"showDetail('breach','Tickets que incumplieron SLA')")+
-    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Tickets con TTR calculado')")+
+    sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Tickets con TMR calculado')")+
     sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-v',null)+
     sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
   mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
@@ -560,7 +614,34 @@ function renderG(d){
   mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  renderHeatmap(tickets,meses,'hm-agente-mes');
+}
+
+function renderHeatmap(tickets,meses,containerId){
+  const resolved=tickets.filter(t=>t.resolvedBy&&t.ttr>0&&t.ttr<720);
+  const agentes=[...new Set(resolved.map(t=>t.resolvedBy))].sort();
+  if(!agentes.length||!meses.length){document.getElementById(containerId).innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';return;}
+  const cell=(v)=>{
+    if(v===null)return`<td style="background:#F9FAFB;color:#D1D5DB">—</td>`;
+    const bg=v<=1?`rgba(16,185,129,${Math.min(0.15+v*0.5,0.85)})`:v<=2?`rgba(245,158,11,${Math.min(0.15+(v-1)*0.5,0.85)})`:`rgba(239,68,68,${Math.min(0.15+(v-2)*0.35,0.85)})`;
+    const color=v<=1?'#065F46':v<=2?'#92400E':'#991B1B';
+    return`<td style="background:${bg};color:${color}">${v.toFixed(1)}h</td>`;
+  };
+  const rows=agentes.map(a=>{
+    const cells=meses.map(m=>{
+      const ts=resolved.filter(t=>t.resolvedBy===a&&t.mLbl===m);
+      return ts.length?+avg(ts.map(t=>t.ttr)).toFixed(2):null;
+    });
+    const total=resolved.filter(t=>t.resolvedBy===a);
+    const totalAvg=total.length?+avg(total.map(t=>t.ttr)).toFixed(2):null;
+    return`<tr><td class="hm-agent">${a.split(' ').slice(0,2).join(' ')}</td>${cells.map(cell).join('')}${cell(totalAvg)}</tr>`;
+  });
+  document.getElementById(containerId).innerHTML=`
+    <table class="hm-table">
+      <thead><tr><th>Agente</th>${meses.map(m=>`<th>${m}</th>`).join('')}<th>Promedio</th></tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>`;
 }
 
 function renderO(d){
@@ -575,14 +656,14 @@ function renderO(d){
     sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Tickets esta semana')")+
     sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Tickets abiertos')")+
     sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
-    sCard('TTR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Tickets con TTR calculado')")+
+    sCard('TMR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Tickets con TMR calculado')")+
     sCard('Agentes',ags.length,'Con tickets asignados','tr-n','fas fa-user-tie','ic-r',null);
   mk('ch-sem',{type:'bar',data:{labels:sems,datasets:[
     {type:'bar',label:'Tickets',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
     {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
   ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}}}});
   const ts2=evo.filter(e=>e.ttr);
-  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TTR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
   document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>4?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>1?'#DC2626':a.ttr&&a.ttr>0.75?'#D97706':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td style="font-weight:700;color:${a.slaPct===null?'#9CA3AF':a.slaPct>=85?'#059669':a.slaPct>=70?'#D97706':'#DC2626'}">${a.slaPct!==null?a.slaPct+'%':'—'}</td><td><span class="bs ${a.op>4?'bs-op':'bs-cl'}">${a.op>4?'Carga alta':'Normal'}</span></td></tr>`).join('');
   const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
   const now=new Date();
@@ -609,7 +690,7 @@ function canalKpis(tickets,idCards,label){
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
     sCard('Abiertos',ab.toLocaleString(),'En curso','tr-n','fas fa-folder-open','ic-a')+
     sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'',slaCls,'fas fa-bullseye','ic-a')+
-    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t');
+    sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t');
 }
 function canalTblRows(tickets,tbId){
   const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
@@ -655,10 +736,10 @@ function renderCh(d){
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
+  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
   canalTblRows(tickets,'tbl-ch');
 }
 
@@ -670,13 +751,13 @@ function renderCo(d){
   const meses=MONTHS.filter(m=>bm[m]);
   mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Tickets',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
+  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-co-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-co-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
   canalTblRows(tickets,'tbl-co');
 }
 
@@ -713,8 +794,8 @@ function renderSLA(d){
   document.getElementById('sla-cards').innerHTML=
     sCard('SLA Compliance',slaPct!==null?`${slaPct}%`:'—','% tickets <60 min',slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn','fas fa-bullseye','ic-g')+
     sCard('Breaches',breaches.length.toLocaleString(),'Tickets >60 min','tr-dn','fas fa-times-circle','ic-r')+
-    sCard('TTR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets dentro de meta','tr-up','fas fa-check','ic-g')+
-    sCard('TTR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets fuera de meta','tr-dn','fas fa-clock','ic-r');
+    sCard('TMR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets dentro de meta','tr-up','fas fa-check','ic-g')+
+    sCard('TMR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets fuera de meta','tr-dn','fas fa-clock','ic-r');
   // Histograma tramos
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
@@ -854,17 +935,17 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d','ch','co','ia','sla'].forEach(x=>{
+  ['g','o','d','ch','co','ia','sla','glos'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
     document.getElementById(`btn-${x}`).className=`bv bv-${x}`+((v===x)?' active':'');
   });
-  ['ch','co','ia','sla'].forEach(x=>{
+  ['ch','co','ia','sla','glos'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026'};
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
