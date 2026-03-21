@@ -260,10 +260,13 @@ const groupBy=(arr,fn)=>arr.reduce((acc,x)=>{const k=fn(x)||"Sin dato";(acc[k]=a
 const isClosed=e=>{const s=(e||"").toLowerCase();return s.includes("cerr")||s.includes("resuel")||s==="close"||s==="closed";};
 
 async function fetchSheetCSV(id){
-  const url=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
-  const res=await fetch(url);
-  if(!res.ok)throw new Error(`HTTP ${res.status}`);
-  return parseCSV(await res.text());
+  const url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
+  const res=await fetch(url,{redirect:'follow'});
+  if(!res.ok)throw new Error(`HTTP ${res.status} — verifica que el Sheet sea público (Lector)`);
+  const text=await res.text();
+  if(text.trim().startsWith('<!DOCTYPE')||text.trim().startsWith('<html'))
+    throw new Error(`El Sheet ${id} no es público. Ve a Compartir → Cualquiera con el enlace → Lector`);
+  return parseCSV(text);
 }
 function parseCSV(text){
   const lines=text.split('\n').filter(l=>l.trim());
@@ -326,7 +329,13 @@ async function loadData(){
   document.getElementById('error-box').style.display='none';
   try{
     const raw={};
-    for(const[name,id]of Object.entries(SHEETS)) raw[name]=await fetchSheetCSV(id);
+    for(const[name,id]of Object.entries(SHEETS)){
+      try{
+        raw[name]=await fetchSheetCSV(id);
+      }catch(e){
+        throw new Error(`"${name}": ${e.message}`);
+      }
+    }
     const data=processFiles(raw);
     document.getElementById('loading').style.display='none';
     document.getElementById('live-badge').style.display='flex';
@@ -338,7 +347,7 @@ async function loadData(){
     document.getElementById('loading').style.display='none';
     const eb=document.getElementById('error-box');
     eb.style.display='block';
-    eb.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>Error cargando datos: ${e.message}. Verifica que los Google Sheets sean públicos (Lector).`;
+    eb.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i><strong>Error cargando datos:</strong> ${e.message}`;
   }
 }
 
