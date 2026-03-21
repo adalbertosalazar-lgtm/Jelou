@@ -957,7 +957,15 @@ function saveToken(){
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
 
 // ── Init ─────────────────────────────────
-window.addEventListener('load',()=>{
+window.addEventListener('load',async()=>{
+  showLoading(true);
+  // 1. Intentar GitHub (compartido con todos)
+  const gh=await fetchFromGitHub();
+  if(gh&&gh.data){render(deserializeData(gh.data),gh.savedAt);return;}
+  // 2. Fallback: localStorage (solo este navegador)
+  const local=loadLocal();
+  if(local&&local.data){render(deserializeData(local.data),local.savedAt);return;}
+  // 3. Sin datos: mostrar vacío
   showLoading(false);
   document.getElementById('pane-g').classList.add('show');
 });
