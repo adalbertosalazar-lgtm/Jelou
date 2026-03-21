@@ -161,7 +161,7 @@ canvas{cursor:pointer}
 
   <div id="loading" class="loading">
     <div class="spinner"></div>
-    <div style="font-size:13px;color:#9CA3AF;font-weight:500">Cargando datos desde Google Sheets...</div>
+    <div style="font-size:13px;color:#9CA3AF;font-weight:500">Cargando datos...</div>
   </div>
 
   <!-- Gerencial -->
@@ -360,13 +360,6 @@ const GITHUB_OWNER = "adalbertosalazar-lgtm";
 const GITHUB_REPO  = "Jelou";
 const GITHUB_BRANCH = "main";
 const DATA_FILE = "data.json";
-const SHEET_IDS = {
-  "Canal Chat.xlsx":      "1MTLalWcAKOceu1HbQZUKZE0mRf2WkVNsyGYHTgqnNS8",
-  "Canal Correo.xlsx":    "1CCDKeXEiAly4M2wvvcrwuuYBx3g1fLnd7y3TC18FvpE",
-  "Chats AI Agent.xlsx":  "1v_Yf9zYdUMrDy1SMKimS69E59YMqozsCM8FUctMp5vY",
-  "CSAT AI Agent.xlsx":   "11FwtOLXlLvjxFt3zcK_rK47TYNgifulw_OBfiw-o3nk",
-  "CSAT Operadores.xlsx": "1oC5d9MgDCLwdSS7YzPdeqicymjQB0fmhSEUV5LLnIls",
-};
 // ══════════════════════════════════════════
 
 const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
@@ -411,7 +404,7 @@ async function pushToGitHub(processedData,savedAt){
 async function fetchFromGitHub(){
   try{
     const url=`https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${DATA_FILE}?t=${Date.now()}`;
-    const res=await fetch(url);
+    const res=await Promise.race([fetch(url),new Promise((_,r)=>setTimeout(()=>r(new Error('timeout')),5000))]);
     if(!res.ok)return null;
     return await res.json();
   }catch(e){return null;}
@@ -450,19 +443,6 @@ const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
 const grp=(arr,fn)=>arr.reduce((acc,x)=>{const k=fn(x)||"Sin dato";(acc[k]=acc[k]||[]).push(x);return acc;},{});
 const closed=e=>(e||"").trim()==="Resuelto";
 
-// ── CSV parser (para Google Sheets) ─────
-function parseCSV(text){
-  const lines=text.split('\n').filter(l=>l.trim());
-  if(!lines.length)return[];
-  const hdrs=lines[0].split(',').map(h=>h.replace(/^"|"$/g,'').trim());
-  return lines.slice(1).map(line=>{
-    const vals=[];let cur='',inQ=false;
-    for(const ch of line){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else cur+=ch;}
-    vals.push(cur.trim());
-    const o={};hdrs.forEach((h,i)=>o[h]=vals[i]??'');return o;
-  });
-}
-
 // ── Process data ─────────────────────────
 function process(raw){
   const chat=raw["Canal Chat.xlsx"]||[],correo=raw["Canal Correo.xlsx"]||[];
@@ -484,27 +464,6 @@ function process(raw){
   return{tickets,csatRows,aiChats};
 }
 
-// ── Google Sheets loader ─────────────────
-async function loadSheets(){
-  showLoading(true);showErr(null);
-  try{
-    const raw={};
-    for(const[name,id]of Object.entries(SHEET_IDS)){
-      const url=`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=0`;
-      const res=await fetch(url,{redirect:'follow'});
-      if(!res.ok)throw new Error(`"${name}" no accesible (HTTP ${res.status})`);
-      const txt=await res.text();
-      if(txt.trim().startsWith('<'))throw new Error(`"${name}" no es público`);
-      raw[name]=parseCSV(txt);
-    }
-    render(process(raw));
-  }catch(e){
-    showLoading(false);
-    showErr(`No se pudo cargar desde Google Sheets: ${e.message}. Usa el botón admin 🔒 para cargar manualmente.`);
-    document.getElementById('pane-g').classList.add('show');
-    document.getElementById('pane-o').classList.remove('show');
-  }
-}
 
 // ── Excel manual loader ──────────────────
 function handleDrop(files){
