@@ -289,7 +289,7 @@ function csat(v){
 }
 const avg=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:0;
 const grp=(arr,fn)=>arr.reduce((acc,x)=>{const k=fn(x)||"Sin dato";(acc[k]=acc[k]||[]).push(x);return acc;},{});
-const closed=e=>{const s=(e||"").toLowerCase();return s.includes("cerr")||s.includes("resuel")||s==="close"||s==="closed";};
+const closed=e=>(e||"").trim()==="Resuelto";
 
 // ── CSV parser (para Google Sheets) ─────
 function parseCSV(text){
@@ -312,10 +312,11 @@ function process(raw){
   const add=(row,src)=>{
     const tk=String(row["Ticket"]||row["Numero de registro"]||"").trim();
     if(!tk)return;
+    if((row["Estado"]||"").trim()==="Desestimado")return;
     const fc=parseD(row["Fecha creacion"]||row["Fecha de creación"]);
     const fci=parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
     if(!is26(fc))return;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
