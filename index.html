@@ -7,6 +7,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.0.1/chartjs-plugin-annotation.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--jp:#1A0A2E;--ja:#7C3AED;--ja2:#4F46E5;--jg:#10B981;--jw:#F59E0B;--jr:#EF4444;--jl:#EDE9FE;--sw:260px}
@@ -108,6 +109,11 @@ table.dt tr:hover td{background:#FAFAFA}
 .bs-esc{background:#FEF3C7;color:#92400E}
 .bs-si{background:#F3F4F6;color:#6B7280}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}.topbar{left:0}}
+.sla-bar{height:8px;border-radius:4px;background:#EDE9FE;overflow:hidden;margin-top:6px}
+.sla-fill{height:100%;border-radius:4px;transition:.3s}
+.tramo-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tramo-item{display:flex;align-items:center;gap:4px;font-size:10px;color:#6B7280}
+.tramo-dot{width:8px;height:8px;border-radius:50%}
 </style>
 </head>
 <body>
@@ -126,6 +132,8 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="ni" id="nav-ch" onclick="setView('ch')"><i class="fas fa-comments"></i>Chat</div>
     <div class="ni" id="nav-co" onclick="setView('co')"><i class="fas fa-envelope"></i>Correo</div>
     <div class="ni" id="nav-ia" onclick="setView('ia')"><i class="fas fa-robot"></i>Agente IA</div>
+    <div class="nav-lbl" style="margin-top:10px">Análisis</div>
+    <div class="ni" id="nav-sla" onclick="setView('sla')"><i class="fas fa-exclamation-triangle"></i>Análisis SLA</div>
   </nav>
   <div class="sb-foot">
     <div class="upd" id="last-upd">Sin datos cargados</div>
@@ -232,13 +240,28 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Agente IA</div></div></div><canvas id="ch-ia-tipo" height="90"></canvas></div></div></div>
   </div>
 
+  <!-- Análisis SLA -->
+  <div id="pane-sla" class="pane">
+    <div class="row g-3 mb-3" id="sla-cards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TTR — Todos los canales</div><div class="cc-sub">Tickets por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">SLA Compliance mensual</div><div class="cc-sub">% tickets resueltos en &lt;60 min por mes</div></div></div><canvas id="ch-sla-trend" height="130"></canvas></div></div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por canal</div><div class="cc-sub">Tickets que incumplieron &gt;60 min</div></div></div><canvas id="ch-sla-canal" height="150"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por tipo de gestión</div><div class="cc-sub">Top tipos con mayor incumplimiento</div></div></div><canvas id="ch-sla-tipo" height="150"></canvas></div></div>
+    </div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT vs TTR — Impacto del tiempo en satisfacción</div><div class="cc-sub">CSAT promedio por tramo de resolución</div></div></div><canvas id="ch-sla-csat" height="75"></canvas></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-exclamation-circle me-2" style="color:#EF4444"></i>Tickets que incumplieron SLA (&gt;60 min)</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Agente</th><th>Canal</th><th>Tipo de gestión</th><th>Estado</th><th>TTR real</th><th>Exceso</th></tr></thead><tbody id="tbl-breach"></tbody></table></div></div></div></div>
+  </div>
+
   <!-- Operacional -->
   <div id="pane-o" class="pane">
     <div class="row g-3 mb-3" id="o-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Tickets (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TTR prom (h)</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Tickets recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TTR prom (h)</th><th>SLA <60min</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Tickets recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th><th>Transcurrido</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
   </div>
 </div>
 
@@ -502,19 +525,33 @@ function renderG(d){
   const ttA=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
   const ttrA=ttA.length?+avg(ttA).toFixed(1):null;
   const csA=csatRows.length?+avg(csatRows.map(c=>c.v)).toFixed(2):null;
+  const slaOk=ttA.filter(t=>t<=1).length;
+  const slaPct=ttA.length?Math.round(slaOk/ttA.length*100):null;
+  const slaCls=slaPct===null?'tr-n':slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn';
+  const slaColor=slaPct===null?'#7C3AED':slaPct>=85?'#10B981':slaPct>=70?'#F59E0B':'#EF4444';
   document.getElementById('g-cards').innerHTML=
     sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los tickets')")+
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Tickets resueltos')")+
-    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-a',"showDetail('con-ttr','Tickets con TTR calculado')")+
-    sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-t',null)+
+    sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'Sin datos',slaCls,'fas fa-bullseye','ic-a',"showDetail('breach','Tickets que incumplieron SLA')")+
+    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Tickets con TTR calculado')")+
+    sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-v',null)+
     sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
   mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
     {label:'Tickets',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
     {label:'Resueltos',data:evo.map(e=>e.cl),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
     {label:'Chats IA',data:evo.map(e=>e.ai),borderColor:'#F59E0B',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:.3,borderDash:[4,4]},
   ]},options:GO});
-  const tm=evo.filter(e=>e.ttr);
-  mk('ch-ttr',{type:'bar',data:{labels:tm.map(e=>e.m),datasets:[{label:'TTR (h)',data:tm.map(e=>e.ttr),backgroundColor:'rgba(124,58,237,.7)',borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
+  const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
+  const tramoData=[
+    tickets.filter(t=>t.ttr>0&&t.ttr<=0.25).length,
+    tickets.filter(t=>t.ttr>0.25&&t.ttr<=0.5).length,
+    tickets.filter(t=>t.ttr>0.5&&t.ttr<=0.75).length,
+    tickets.filter(t=>t.ttr>0.75&&t.ttr<=1).length,
+    tickets.filter(t=>t.ttr>1&&t.ttr<=1.5).length,
+    tickets.filter(t=>t.ttr>1.5).length,
+  ];
+  mk('ch-ttr',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Tickets',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',xMin:-0.5,xMax:3.5,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta <60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}});
   const cm2=evo.filter(e=>e.cs);
   mk('ch-csat',{type:'line',data:{labels:cm2.map(e=>e.m),datasets:[{label:'CSAT',data:cm2.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
   const bc=grp(tickets,t=>t.canal);const cd=Object.entries(bc).map(([c,a])=>({c,n:a.length}));
@@ -533,7 +570,7 @@ function renderO(d){
   const evo=sems.map(s=>{const ts=bs[s]||[],csr=cs[s]||[];const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{s,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null};});
   const ult=evo[evo.length-1]||{},ab=tickets.filter(t=>!closed(t.estado)).length;
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
-  const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null};}).sort((a,b)=>b.tot-a.tot);
+  const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);const slaOk=tt.filter(t=>t<=1).length;const slaPct=tt.length?Math.round(slaOk/tt.length*100):null;return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null,slaPct};}).sort((a,b)=>b.tot-a.tot);
   document.getElementById('o-cards').innerHTML=
     sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Tickets esta semana')")+
     sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Tickets abiertos')")+
@@ -546,9 +583,15 @@ function renderO(d){
   ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}}}});
   const ts2=evo.filter(e=>e.ttr);
   mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TTR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
-  document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>5?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>24?'#DC2626':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td><span class="bs ${a.op>5?'bs-op':'bs-cl'}">${a.op>5?'Carga alta':'Normal'}</span></td></tr>`).join('');
+  document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>4?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>1?'#DC2626':a.ttr&&a.ttr>0.75?'#D97706':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td style="font-weight:700;color:${a.slaPct===null?'#9CA3AF':a.slaPct>=85?'#059669':a.slaPct>=70?'#D97706':'#DC2626'}">${a.slaPct!==null?a.slaPct+'%':'—'}</td><td><span class="bs ${a.op>4?'bs-op':'bs-cl'}">${a.op>4?'Carga alta':'Normal'}</span></td></tr>`).join('');
   const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
-  document.getElementById('tbl-tk').innerHTML=rec.map(t=>`<tr><td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td><td>${t.tipo||'—'}</td><td><span class="bs bs-pr">${t.canal}</span></td><td>${(t.agente||'').split(' ')[0]||'—'}</td><td><span class="bs ${closed(t.estado)?'bs-cl':'bs-op'}">${t.estado||'—'}</span></td><td style="color:#9CA3AF;font-size:11px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td></tr>`).join('');
+  const now=new Date();
+  document.getElementById('tbl-tk').innerHTML=rec.map(t=>{
+    const elapsed=t.fc&&!closed(t.estado)?((now-t.fc)/3600000):null;
+    const elColor=elapsed===null?'#9CA3AF':elapsed>1?'#DC2626':elapsed>0.75?'#D97706':'#059669';
+    const elTxt=elapsed===null?'—':elapsed<1?`${Math.round(elapsed*60)}m`:`${elapsed.toFixed(1)}h`;
+    return`<tr><td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td><td>${t.tipo||'—'}</td><td><span class="bs bs-pr">${t.canal}</span></td><td>${(t.agente||'').split(' ')[0]||'—'}</td><td><span class="bs ${closed(t.estado)?'bs-cl':'bs-op'}">${t.estado||'—'}</span></td><td style="color:#9CA3AF;font-size:11px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td><td style="font-weight:600;color:${elColor};font-size:11px">${elTxt}</td></tr>`;
+  }).join('');
 }
 
 // ── Helpers de canal ─────────────────────
@@ -558,10 +601,14 @@ function canalKpis(tickets,idCards,label){
   const pct=tot?Math.round(cl/tot*100):0;
   const ttA=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
   const ttrA=ttA.length?+avg(ttA).toFixed(1):null;
+  const slaOk=ttA.filter(t=>t<=1).length;
+  const slaPct=ttA.length?Math.round(slaOk/ttA.length*100):null;
+  const slaCls=slaPct===null?'tr-n':slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn';
   document.getElementById(idCards).innerHTML=
     sCard(`Tickets ${label}`,tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
     sCard('Abiertos',ab.toLocaleString(),'En curso','tr-n','fas fa-folder-open','ic-a')+
+    sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'',slaCls,'fas fa-bullseye','ic-a')+
     sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t');
 }
 function canalTblRows(tickets,tbId){
@@ -576,7 +623,7 @@ function canalTblRows(tickets,tbId){
       <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
-      <td style="font-weight:600;color:${t.ttr&&t.ttr>24?'#DC2626':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
+      <td style="font-weight:600;color:${t.ttr>1?'#DC2626':t.ttr>0.75?'#D97706':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
     </tr>`).join('');
 }
 
@@ -584,6 +631,14 @@ function canalTblRows(tickets,tbId){
 function renderCh(d){
   const tickets=d.tickets.filter(t=>t.src==='chat');
   canalKpis(tickets,'ch-cards','Chat');
+  // SLA por subcanal
+  const webT=tickets.filter(t=>t.canal==='Web'&&t.ttr>0&&t.ttr<720);
+  const wapT=tickets.filter(t=>t.canal==='WhatsApp'&&t.ttr>0&&t.ttr<720);
+  const webSla=webT.length?Math.round(webT.filter(t=>t.ttr<=1).length/webT.length*100):null;
+  const wapSla=wapT.length?Math.round(wapT.filter(t=>t.ttr<=1).length/wapT.length*100):null;
+  document.getElementById('ch-cards').innerHTML+=
+    sCard('SLA Web',webSla!==null?`${webSla}%`:'—',webSla>=85?'Sobre meta ↑':'Bajo meta ↓',webSla>=85?'tr-up':'tr-dn','fas fa-globe','ic-v')+
+    sCard('SLA WhatsApp',wapSla!==null?`${wapSla}%`:'—',wapSla>=85?'Sobre meta ↑':'Bajo meta ↓',wapSla>=85?'tr-up':'tr-dn','fab fa-whatsapp','ic-g');
   const bm=grp(tickets,t=>t.mLbl);
   const meses=MONTHS.filter(m=>bm[m]);
   const web=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='Web').length);
@@ -600,7 +655,7 @@ function renderCh(d){
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
   mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
@@ -615,7 +670,7 @@ function renderCo(d){
   const meses=MONTHS.filter(m=>bm[m]);
   mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Tickets',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
@@ -649,6 +704,66 @@ function renderIA(d){
   }
 }
 
+function renderSLA(d){
+  const{tickets,csatRows}=d;
+  const withTTR=tickets.filter(t=>t.ttr>0&&t.ttr<720);
+  const breaches=withTTR.filter(t=>t.ttr>1);
+  const ok=withTTR.filter(t=>t.ttr<=1);
+  const slaPct=withTTR.length?Math.round(ok.length/withTTR.length*100):null;
+  document.getElementById('sla-cards').innerHTML=
+    sCard('SLA Compliance',slaPct!==null?`${slaPct}%`:'—','% tickets <60 min',slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn','fas fa-bullseye','ic-g')+
+    sCard('Breaches',breaches.length.toLocaleString(),'Tickets >60 min','tr-dn','fas fa-times-circle','ic-r')+
+    sCard('TTR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets dentro de meta','tr-up','fas fa-check','ic-g')+
+    sCard('TTR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets fuera de meta','tr-dn','fas fa-clock','ic-r');
+  // Histograma tramos
+  const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
+  const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
+  const tramoData=[
+    withTTR.filter(t=>t.ttr<=0.25).length,
+    withTTR.filter(t=>t.ttr>0.25&&t.ttr<=0.5).length,
+    withTTR.filter(t=>t.ttr>0.5&&t.ttr<=0.75).length,
+    withTTR.filter(t=>t.ttr>0.75&&t.ttr<=1).length,
+    withTTR.filter(t=>t.ttr>1&&t.ttr<=1.5).length,
+    withTTR.filter(t=>t.ttr>1.5).length,
+  ];
+  mk('ch-sla-hist',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Tickets',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}}}});
+  // Tendencia SLA mensual
+  const bm=grp(withTTR,t=>t.mLbl);
+  const meses=MONTHS.filter(m=>bm[m]);
+  const slaTrend=meses.map(m=>{const ts=bm[m]||[];return ts.length?Math.round(ts.filter(t=>t.ttr<=1).length/ts.length*100):null;});
+  mk('ch-sla-trend',{type:'line',data:{labels:meses,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
+  // Breaches por canal
+  const bc=grp(breaches,t=>t.canal);
+  const bcd=Object.entries(bc).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n);
+  mk('ch-sla-canal',{type:'doughnut',data:{labels:bcd.map(d=>d.c),datasets:[{data:bcd.map(d=>d.n),backgroundColor:['#EF4444','#D97706','#7C3AED','#4F46E5'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}}}});
+  // Breaches por tipo
+  const bt=grp(breaches.filter(t=>t.tipo),t=>t.tipo);
+  const btd=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
+  mk('ch-sla-tipo',{type:'bar',data:{labels:btd.map(d=>d.t),datasets:[{label:'Breaches',data:btd.map(d=>d.n),backgroundColor:'rgba(239,68,68,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  // CSAT vs TTR tramos
+  const csatByTramo=tramoLbls.map((l,i)=>{
+    const ranges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,999]];
+    const [lo,hi]=ranges[i];
+    const tks=withTTR.filter(t=>t.ttr>lo&&t.ttr<=hi).map(t=>t.tk);
+    const tkSet=new Set(tks);
+    const cs=csatRows.filter(r=>tkSet.size>0).map(r=>r.v);
+    return cs.length?+avg(cs).toFixed(2):null;
+  });
+  mk('ch-sla-csat',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'CSAT prom',data:csatByTramo,backgroundColor:tramoCols.map(c=>c+'99'),borderRadius:4,borderColor:tramoCols,borderWidth:1}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
+  // Tabla breaches
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
+  document.getElementById('tbl-breach').innerHTML=[...breaches].sort((a,b)=>b.ttr-a.ttr).slice(0,50).map(t=>`
+    <tr>
+      <td><code style="font-size:10px;color:#EF4444">${String(t.tk).slice(0,14)}</code></td>
+      <td><strong>${t.agente||'—'}</strong></td>
+      <td><span class="bs bs-pr">${t.canal||'—'}</span></td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
+      <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
+      <td style="font-weight:700;color:#DC2626">${t.ttr.toFixed(1)}h</td>
+      <td style="font-weight:600;color:#D97706">+${(t.ttr-1).toFixed(1)}h</td>
+    </tr>`).join('');
+}
+
 // ── Vista detalle ─────────────────────────
 let detRows=[],detSort={col:null,asc:true},detFrom='g';
 
@@ -669,6 +784,7 @@ function showDetail(filter,label){
   else if(filter==='resueltos') rows=tickets.filter(t=>closed(t.estado));
   else if(filter==='abiertos')  rows=tickets.filter(t=>!closed(t.estado));
   else if(filter==='con-ttr')   rows=tickets.filter(t=>t.ttr>0&&t.ttr<720);
+  else if(filter==='breach')    rows=tickets.filter(t=>t.ttr>1&&t.ttr<720);
   else if(filter==='semana')    rows=tickets.filter(t=>t.wLbl===sem);
   else if(filter==='ia'){
     detRows=aiChats.map(r=>({tk:'—',agente:'IA Agent',canal:'Chat IA',tipo:'—',estado:'—',fc:r.f,fci:null,ttr:null}));
@@ -700,7 +816,7 @@ function renderDetailRows(rows){
       <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
-      <td style="font-weight:600;color:${t.ttr&&t.ttr>24?'#DC2626':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
+      <td style="font-weight:600;color:${t.ttr>1?'#DC2626':t.ttr>0.75?'#D97706':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
     </tr>`).join('');
   document.getElementById('det-count').textContent=`${rows.length} registros`;
 }
@@ -738,21 +854,22 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d','ch','co','ia'].forEach(x=>{
+  ['g','o','d','ch','co','ia','sla'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
     document.getElementById(`btn-${x}`).className=`bv bv-${x}`+((v===x)?' active':'');
   });
-  ['ch','co','ia'].forEach(x=>{
+  ['ch','co','ia','sla'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026'};
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
   if(v==='ia'&&window._dashData) renderIA(window._dashData);
+  if(v==='sla'&&window._dashData) renderSLA(window._dashData);
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
