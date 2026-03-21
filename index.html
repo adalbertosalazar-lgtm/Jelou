@@ -88,6 +88,25 @@ table.dt tr:hover td{background:#FAFAFA}
 /* Botón admin oculto */
 .admin-btn{position:fixed;bottom:18px;right:18px;width:36px;height:36px;border-radius:50%;background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.2);color:#7C3AED;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;z-index:150}
 .admin-btn:hover{background:rgba(124,58,237,.25)}
+.sc-click{cursor:pointer;transition:.15s}
+.sc-click:hover{box-shadow:0 4px 16px rgba(124,58,237,.18);transform:translateY(-1px)}
+.sc-click .ver-det{font-size:10px;color:#7C3AED;font-weight:600;margin-top:6px;display:none}
+.sc-click:hover .ver-det{display:block}
+.det-hd{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.det-back{background:#EDE9FE;color:#7C3AED;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+.det-back:hover{background:#DDD6FE}
+.det-title{font-size:16px;font-weight:700;color:#1A0A2E}
+.det-count{font-size:12px;color:#9CA3AF;background:#F5F3FF;padding:3px 10px;border-radius:20px}
+.det-search{padding:7px 12px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;width:220px}
+.det-search:focus{border-color:#7C3AED}
+.th-sort{cursor:pointer;user-select:none}
+.th-sort:hover{color:#7C3AED}
+.th-sort.asc::after{content:' ↑'}
+.th-sort.desc::after{content:' ↓'}
+.bs-es{background:#FEE2E2;color:#991B1B}
+.bs-inv{background:#E0F2FE;color:#0369A1}
+.bs-esc{background:#FEF3C7;color:#92400E}
+.bs-si{background:#F3F4F6;color:#6B7280}
 @media(max-width:768px){.sidebar{transform:translateX(-100%)}.main{margin-left:0}.topbar{left:0}}
 </style>
 </head>
@@ -145,6 +164,35 @@ table.dt tr:hover td{background:#FAFAFA}
       <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tickets por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
     </div>
     <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total tickets y TTR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
+  </div>
+
+  <!-- Detalle -->
+  <div id="pane-d" class="pane">
+    <div class="det-hd">
+      <button class="det-back" onclick="backFromDetail()"><i class="fas fa-arrow-left"></i> Volver</button>
+      <div class="det-title" id="det-title">Detalle</div>
+      <div class="det-count" id="det-count"></div>
+      <input class="det-search" id="det-search" placeholder="Buscar ticket o agente..." oninput="filterDetail()">
+    </div>
+    <div class="tc">
+      <div style="overflow-x:auto">
+        <table class="dt" id="det-table">
+          <thead>
+            <tr>
+              <th class="th-sort" onclick="sortDetail('tk')">Ticket</th>
+              <th class="th-sort" onclick="sortDetail('agente')">Tech Support</th>
+              <th class="th-sort" onclick="sortDetail('canal')">Canal</th>
+              <th class="th-sort" onclick="sortDetail('tipo')">Tipo de gestión</th>
+              <th class="th-sort" onclick="sortDetail('estado')">Estado</th>
+              <th class="th-sort" onclick="sortDetail('fc')">Fecha creación</th>
+              <th class="th-sort" onclick="sortDetail('fci')">Fecha cierre</th>
+              <th class="th-sort" onclick="sortDetail('ttr')">TTR (h)</th>
+            </tr>
+          </thead>
+          <tbody id="det-body"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- Operacional -->
@@ -384,6 +432,7 @@ async function loadExcel(){
 // ── Render ───────────────────────────────
 function render(data,savedAt){
   showLoading(false);
+  window._dashData=data;
   document.getElementById('live-badge').style.display='flex';
   const fecha=savedAt?new Date(savedAt).toLocaleString('es-CO'):new Date().toLocaleString('es-CO');
   document.getElementById('last-upd').textContent=`Última carga: ${fecha}`;
@@ -397,8 +446,10 @@ function mk(id,cfg){
 }
 const GO={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font:{size:11},boxWidth:11}}},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}}}};
 
-function sCard(lbl,val,sub,cls,ico,ic){
-  return`<div class="col-6 col-md-4 col-lg"><div class="sc d-flex justify-content-between align-items-start"><div><div class="lbl">${lbl}</div><div class="val">${val??'—'}</div><div class="tr ${cls||'tr-n'}">${sub||''}</div></div><div class="iw ${ic}"><i class="${ico}"></i></div></div></div>`;
+function sCard(lbl,val,sub,cls,ico,ic,onclick){
+  const clickAttr=onclick?`onclick="${onclick}"`:'';
+  const clickCls=onclick?' sc-click':'';
+  return`<div class="col-6 col-md-4 col-lg"><div class="sc${clickCls} d-flex justify-content-between align-items-start" ${clickAttr}><div><div class="lbl">${lbl}</div><div class="val">${val??'—'}</div><div class="tr ${cls||'tr-n'}">${sub||''}</div>${onclick?'<div class="ver-det"><i class="fas fa-table me-1"></i>Ver detalle</div>':''}</div><div class="iw ${ic}"><i class="${ico}"></i></div></div></div>`;
 }
 
 function renderG(d){
@@ -415,11 +466,11 @@ function renderG(d){
   const ttrA=ttA.length?+avg(ttA).toFixed(1):null;
   const csA=csatRows.length?+avg(csatRows.map(c=>c.v)).toFixed(2):null;
   document.getElementById('g-cards').innerHTML=
-    sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
-    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
-    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-a')+
-    sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-t')+
-    sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r');
+    sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los tickets')")+
+    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Tickets resueltos')")+
+    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-a',"showDetail('con-ttr','Tickets con TTR calculado')")+
+    sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-t',null)+
+    sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
   mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
     {label:'Tickets',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
     {label:'Resueltos',data:evo.map(e=>e.cl),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
@@ -447,11 +498,11 @@ function renderO(d){
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null};}).sort((a,b)=>b.tot-a.tot);
   document.getElementById('o-cards').innerHTML=
-    sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v')+
-    sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a')+
-    sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g')+
-    sCard('TTR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t')+
-    sCard('Agentes',ags.length,'Con tickets asignados','tr-n','fas fa-user-tie','ic-r');
+    sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Tickets esta semana')")+
+    sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Tickets abiertos')")+
+    sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
+    sCard('TTR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Tickets con TTR calculado')")+
+    sCard('Agentes',ags.length,'Con tickets asignados','tr-n','fas fa-user-tie','ic-r',null);
   mk('ch-sem',{type:'bar',data:{labels:sems,datasets:[
     {type:'bar',label:'Tickets',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
     {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
@@ -463,15 +514,104 @@ function renderO(d){
   document.getElementById('tbl-tk').innerHTML=rec.map(t=>`<tr><td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td><td>${t.tipo||'—'}</td><td><span class="bs bs-pr">${t.canal}</span></td><td>${(t.agente||'').split(' ')[0]||'—'}</td><td><span class="bs ${closed(t.estado)?'bs-cl':'bs-op'}">${t.estado||'—'}</span></td><td style="color:#9CA3AF;font-size:11px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td></tr>`).join('');
 }
 
+// ── Vista detalle ─────────────────────────
+let detRows=[],detSort={col:null,asc:true},detFrom='g';
+
+const estadoBadge=e=>{
+  if(e==='Resuelto')return'bs-cl';
+  if(e==='Escalado')return'bs-esc';
+  if(e==='Investigando')return'bs-inv';
+  if(e==='Solicitud Interna')return'bs-si';
+  return'bs-op';
+};
+
+function showDetail(filter,label){
+  detFrom=currentView;
+  const{tickets,aiChats}=window._dashData;
+  const sem=wLbl(new Date());
+  let rows;
+  if(filter==='all')          rows=[...tickets];
+  else if(filter==='resueltos') rows=tickets.filter(t=>closed(t.estado));
+  else if(filter==='abiertos')  rows=tickets.filter(t=>!closed(t.estado));
+  else if(filter==='con-ttr')   rows=tickets.filter(t=>t.ttr>0&&t.ttr<720);
+  else if(filter==='semana')    rows=tickets.filter(t=>t.wLbl===sem);
+  else if(filter==='ia'){
+    detRows=aiChats.map(r=>({tk:'—',agente:'IA Agent',canal:'Chat IA',tipo:'—',estado:'—',fc:r.f,fci:null,ttr:null}));
+    buildDetailTable(label,detRows);return;
+  }
+  detRows=[...rows].sort((a,b)=>(b.fc||0)-(a.fc||0));
+  buildDetailTable(label,detRows);
+}
+
+function buildDetailTable(label,rows){
+  document.getElementById('det-title').textContent=label;
+  document.getElementById('det-count').textContent=`${rows.length} registros`;
+  document.getElementById('det-search').value='';
+  renderDetailRows(rows);
+  // Reset sort headers
+  document.querySelectorAll('.th-sort').forEach(th=>th.className='th-sort');
+  detSort={col:null,asc:true};
+  setView('d');
+}
+
+function renderDetailRows(rows){
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
+  document.getElementById('det-body').innerHTML=rows.map(t=>`
+    <tr>
+      <td><code style="font-size:10px;color:#7C3AED">${t.tk||'—'}</code></td>
+      <td><strong>${t.agente||'—'}</strong></td>
+      <td><span class="bs bs-pr">${t.canal||'—'}</span></td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
+      <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
+      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
+      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
+      <td style="font-weight:600;color:${t.ttr&&t.ttr>24?'#DC2626':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
+    </tr>`).join('');
+  document.getElementById('det-count').textContent=`${rows.length} registros`;
+}
+
+function filterDetail(){
+  const q=document.getElementById('det-search').value.toLowerCase();
+  const filtered=q?detRows.filter(t=>
+    String(t.tk).toLowerCase().includes(q)||
+    (t.agente||'').toLowerCase().includes(q)||
+    (t.tipo||'').toLowerCase().includes(q)||
+    (t.estado||'').toLowerCase().includes(q)
+  ):detRows;
+  renderDetailRows(filtered);
+}
+
+function sortDetail(col){
+  if(detSort.col===col) detSort.asc=!detSort.asc;
+  else{detSort.col=col;detSort.asc=true;}
+  document.querySelectorAll('.th-sort').forEach(th=>th.className='th-sort');
+  event.currentTarget.className=`th-sort ${detSort.asc?'asc':'desc'}`;
+  const q=document.getElementById('det-search').value.toLowerCase();
+  let rows=q?detRows.filter(t=>String(t.tk).toLowerCase().includes(q)||(t.agente||'').toLowerCase().includes(q)):detRows;
+  rows=[...rows].sort((a,b)=>{
+    let va=a[col],vb=b[col];
+    if(va instanceof Date)va=va?.getTime()||0;
+    if(vb instanceof Date)vb=vb?.getTime()||0;
+    va=va??'';vb=vb??'';
+    return detSort.asc?(va>vb?1:-1):(va<vb?1:-1);
+  });
+  renderDetailRows(rows);
+}
+
+function backFromDetail(){setView(detFrom);}
+
 // ── UI helpers ───────────────────────────
 function setView(v){
-  currentView=v;
-  ['g','o'].forEach(x=>{
+  if(v!=='d') currentView=v;
+  ['g','o','d'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
-    document.getElementById(`nav-${x}`).className='ni'+(v===x?' active':'');
-    document.getElementById(`btn-${x}`).className=`bv bv-${x}`+(v===x?' active':'');
   });
-  document.getElementById('page-title').textContent=v==='g'?'Vista gerencial — 2026':'Vista operacional — 2026';
+  ['g','o'].forEach(x=>{
+    document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
+    document.getElementById(`btn-${x}`).className=`bv bv-${x}`+((v===x)?' active':'');
+  });
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets'};
+  document.getElementById('page-title').textContent=titles[v]||'';
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
