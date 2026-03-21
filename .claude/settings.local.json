@@ -6,7 +6,27 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(python3 -c \":*)"
+      "Bash(python3 -c \":*)",
+      "WebFetch(domain:www.jelou.ai)",
+      "WebFetch(domain:help.jelou.ai)",
+      "WebFetch(domain:www.intercom.com)",
+      "WebFetch(domain:www.zendesk.com)",
+      "WebFetch(domain:www.freshdesk.com)",
+      "WebFetch(domain:support.zendesk.com)",
+      "WebFetch(domain:www.kayako.com)",
+      "WebFetch(domain:www.helpscout.com)",
+      "WebFetch(domain:www.metricnet.com)",
+      "WebFetch(domain:jelou.ai)",
+      "WebFetch(domain:hbr.org)",
+      "WebFetch(domain:www.salesforce.com)",
+      "WebFetch(domain:apps.jelou.ai)",
+      "WebFetch(domain:www.gartner.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:blog.hubspot.com)",
+      "WebFetch(domain:www.talkdesk.com)",
+      "WebFetch(domain:www.nice.com)",
+      "WebFetch(domain:cxtrends.zendesk.com)",
+      "WebFetch(domain:www.playvs.com)"
     ]
   }
 }
