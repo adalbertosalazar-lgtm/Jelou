@@ -167,7 +167,7 @@ canvas{cursor:pointer}
   <!-- Gerencial -->
   <div id="pane-g" class="pane">
     <div class="row g-3 mb-3" id="g-cards"></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de casos</div><div class="cc-sub">Casos abiertos, resueltos y chats IA por mes</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de casos</div><div class="cc-sub">Volumen mensual por canal</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT mensual</div><div class="cc-sub">Satisfacción promedio (1–5)</div></div></div><canvas id="ch-csat" height="130"></canvas></div></div>
@@ -548,11 +548,12 @@ function renderG(d){
     sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
     sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-v',null)+
     sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
-  mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
-    {label:'Casos',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
-    {label:'Resueltos',data:evo.map(e=>e.cl),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
-    {label:'Chats IA',data:evo.map(e=>e.ai),borderColor:'#F59E0B',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:.3,borderDash:[4,4]},
-  ]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Casos — ${m}`);}}});
+  const volChat=meses.map(m=>(bm[m]||[]).filter(t=>t.canal!=='Correo').length);
+  const volCorreo=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='Correo').length);
+  mk('ch-vol',{type:'bar',data:{labels:meses,datasets:[
+    {label:'Chat',data:volChat,backgroundColor:'rgba(124,58,237,.75)',borderRadius:4,stack:'s'},
+    {label:'Correo',data:volCorreo,backgroundColor:'rgba(79,70,229,.75)',borderRadius:4,stack:'s'},
+  ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Casos — ${m}`);}}});
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
   const tramoData=[
