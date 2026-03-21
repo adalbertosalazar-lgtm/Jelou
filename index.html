@@ -171,6 +171,11 @@ table.dt tr:hover td{background:#FAFAFA}
     <button class="btn-modal-cancel" onclick="closeAdmin()">Cancelar</button>
 
     <div class="upload-panel" id="upload-panel">
+      <div style="margin-bottom:12px">
+        <label style="font-size:11px;font-weight:600;color:#6B7280;display:block;margin-bottom:4px">GitHub Token (para guardar para todos)</label>
+        <input type="password" class="modal-input" id="gh-token-input" placeholder="ghp_xxxxxxxxxxxx" style="margin-bottom:0">
+        <div style="font-size:10px;color:#9CA3AF;margin-top:3px">Se guarda solo en este navegador. <a href="https://github.com/settings/tokens/new?scopes=repo&description=Jelou+Dashboard" target="_blank" style="color:#7C3AED">Crear token</a></div>
+      </div>
       <div class="drop-area" onclick="document.getElementById('file-input').click()"
         ondragover="event.preventDefault()" ondrop="event.preventDefault();handleDrop(event.dataTransfer.files)">
         <i class="fas fa-cloud-upload-alt"></i>
@@ -192,6 +197,10 @@ table.dt tr:hover td{background:#FAFAFA}
 // CONFIGURACIÓN — cambia solo estos valores
 // ══════════════════════════════════════════
 const ADMIN_CODE = "jelou2026";  // <-- TU CONTRASEÑA
+const GITHUB_OWNER = "adalbertosalazar-lgtm";
+const GITHUB_REPO  = "Jelou";
+const GITHUB_BRANCH = "main";
+const DATA_FILE = "data.json";
 const SHEET_IDS = {
   "Canal Chat.xlsx":      "1MTLalWcAKOceu1HbQZUKZE0mRf2WkVNsyGYHTgqnNS8",
   "Canal Correo.xlsx":    "1CCDKeXEiAly4M2wvvcrwuuYBx3g1fLnd7y3TC18FvpE",
@@ -204,10 +213,55 @@ const SHEET_IDS = {
 const MONTHS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 let charts={}, currentView='g', pendingFiles={};
 
-// ── Persistencia localStorage ─────────────
-const STORAGE_KEY='jelou_dash_v1';
-function saveRaw(raw,savedAt){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({raw,savedAt}));}catch(e){console.warn('localStorage lleno',e);}}
-function loadRaw(){try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+// ── Serialización (fechas → timestamps para JSON) ──
+function serializeData(d){
+  return{
+    tickets:d.tickets.map(t=>({...t,fc:t.fc?t.fc.getTime():null,fci:t.fci?t.fci.getTime():null})),
+    csatRows:d.csatRows.map(r=>({...r,f:r.f?r.f.getTime():null})),
+    aiChats:d.aiChats.map(r=>({...r,f:r.f?r.f.getTime():null}))
+  };
+}
+function deserializeData(d){
+  return{
+    tickets:d.tickets.map(t=>({...t,fc:t.fc?new Date(t.fc):null,fci:t.fci?new Date(t.fci):null})),
+    csatRows:d.csatRows.map(r=>({...r,f:r.f?new Date(r.f):null})),
+    aiChats:d.aiChats.map(r=>({...r,f:r.f?new Date(r.f):null}))
+  };
+}
+
+// ── GitHub: guardar data.json en el repo ──
+async function pushToGitHub(processedData,savedAt){
+  const token=localStorage.getItem('gh_token');
+  if(!token){console.warn('Sin token GitHub, datos solo en localStorage');return false;}
+  try{
+    const payload=JSON.stringify({data:serializeData(processedData),savedAt});
+    const content=btoa(unescape(encodeURIComponent(payload)));
+    const apiUrl=`https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${DATA_FILE}`;
+    const headers={Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'};
+    let sha=null;
+    const r=await fetch(apiUrl,{headers});
+    if(r.ok){const j=await r.json();sha=j.sha;}
+    const body={message:`Dashboard update ${savedAt}`,content,branch:GITHUB_BRANCH,...(sha?{sha}:{})};
+    const w=await fetch(apiUrl,{method:'PUT',headers,body:JSON.stringify(body)});
+    if(w.ok){console.log('data.json guardado en GitHub');}else{console.error('Error GitHub API',await w.text());}
+    return w.ok;
+  }catch(e){console.error('pushToGitHub error',e);return false;}
+}
+
+// ── GitHub: cargar data.json del repo ─────
+async function fetchFromGitHub(){
+  try{
+    const url=`https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${DATA_FILE}?t=${Date.now()}`;
+    const res=await fetch(url);
+    if(!res.ok)return null;
+    return await res.json();
+  }catch(e){return null;}
+}
+
+// ── localStorage como fallback ────────────
+const STORAGE_KEY='jelou_dash_v2';
+function saveLocal(processedData,savedAt){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({data:serializeData(processedData),savedAt}));}catch(e){}}
+function loadLocal(){try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
 
 // ── Parsing helpers ──────────────────────
 function parseD(v){
@@ -305,6 +359,7 @@ function handleDrop(files){
 
 async function loadExcel(){
   const filesToProcess={...pendingFiles};
+  saveToken();
   showLoading(true);showErr(null);closeAdmin();
   try{
     const raw={};
@@ -313,12 +368,13 @@ async function loadExcel(){
       const wb=XLSX.read(buf,{type:'arraybuffer',cellDates:true});
       const ws=wb.Sheets[wb.SheetNames[0]];
       raw[name]=XLSX.utils.sheet_to_json(ws,{defval:'',raw:false});
-      // Debug: muestra columnas detectadas en consola
       if(raw[name].length>0)console.log(`[${name}] columnas:`,Object.keys(raw[name][0]));
     }
     const savedAt=new Date().toISOString();
-    saveRaw(raw,savedAt);
-    render(process(raw),savedAt);
+    const processed=process(raw);
+    saveLocal(processed,savedAt);
+    render(processed,savedAt);
+    pushToGitHub(processed,savedAt);
   }catch(e){
     showLoading(false);showErr('Error procesando Excel: '+e.message);
   }
@@ -437,22 +493,41 @@ function checkPwd(){
     document.getElementById('upload-panel').style.display='block';
     document.getElementById('pwd-input').closest('.modal-box').querySelector('p').textContent='Acceso concedido. Sube los archivos Excel para actualizar el dashboard.';
     document.querySelectorAll('.modal-input,.btn-modal-ok').forEach(el=>el.style.display='none');
+    // Cargar token guardado
+    const saved=localStorage.getItem('gh_token');
+    if(saved)document.getElementById('gh-token-input').value=saved;
   }else{
     document.getElementById('pwd-err').style.display='block';
     document.getElementById('pwd-input').value='';
     document.getElementById('pwd-input').focus();
   }
 }
+function saveToken(){
+  const t=document.getElementById('gh-token-input').value.trim();
+  if(t)localStorage.setItem('gh_token',t);
+  else localStorage.removeItem('gh_token');
+}
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
 
 // ── Init ─────────────────────────────────
-window.addEventListener('load',()=>{
-  const cached=loadRaw();
-  if(cached&&cached.raw){
-    render(process(cached.raw),cached.savedAt);
-  }else{
-    loadSheets();
+window.addEventListener('load',async()=>{
+  showLoading(true);
+  // 1. Intentar GitHub (fuente oficial, visible para todos)
+  const gh=await fetchFromGitHub();
+  if(gh&&gh.data){
+    render(deserializeData(gh.data),gh.savedAt);
+    return;
   }
+  // 2. Fallback: localStorage (solo este navegador)
+  const local=loadLocal();
+  if(local&&local.data){
+    render(deserializeData(local.data),local.savedAt);
+    return;
+  }
+  // 3. Sin datos: mostrar vacío con mensaje
+  showLoading(false);
+  showErr('Sin datos cargados. Usa el botón 🔒 para subir los archivos Excel.');
+  document.getElementById('pane-g').classList.add('show');
 });
 </script>
 </body>
