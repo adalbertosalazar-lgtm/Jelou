@@ -123,9 +123,9 @@ table.dt tr:hover td{background:#FAFAFA}
     <div class="ni active" id="nav-g" onclick="setView('g')"><i class="fas fa-chart-line"></i>Vista gerencial</div>
     <div class="ni" id="nav-o" onclick="setView('o')"><i class="fas fa-tasks"></i>Vista operacional</div>
     <div class="nav-lbl" style="margin-top:10px">Canales</div>
-    <div class="ni"><i class="fab fa-whatsapp"></i>WhatsApp / Chat</div>
-    <div class="ni"><i class="fas fa-envelope"></i>Correo</div>
-    <div class="ni"><i class="fas fa-robot"></i>Agente IA</div>
+    <div class="ni" id="nav-ch" onclick="setView('ch')"><i class="fas fa-comments"></i>Chat</div>
+    <div class="ni" id="nav-co" onclick="setView('co')"><i class="fas fa-envelope"></i>Correo</div>
+    <div class="ni" id="nav-ia" onclick="setView('ia')"><i class="fas fa-robot"></i>Agente IA</div>
   </nav>
   <div class="sb-foot">
     <div class="upd" id="last-upd">Sin datos cargados</div>
@@ -193,6 +193,43 @@ table.dt tr:hover td{background:#FAFAFA}
         </table>
       </div>
     </div>
+  </div>
+
+  <!-- Canal Chat -->
+  <div id="pane-ch" class="pane">
+    <div class="row g-3 mb-3" id="ch-cards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Chat</div><div class="cc-sub">Total tickets por mes</div></div></div><canvas id="ch-ch-vol" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Web vs WhatsApp por mes</div><div class="cc-sub">Desglose por canal</div></div></div><canvas id="ch-ch-split" height="130"></canvas></div></div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Chat</div></div></div><canvas id="ch-ch-tipo" height="150"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR mensual (horas) — Chat</div></div></div><canvas id="ch-ch-ttr" height="150"></canvas></div></div>
+    </div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Chat</div></div></div><canvas id="ch-ch-ag" height="75"></canvas></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Tickets recientes — Chat</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Canal</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TTR</th></tr></thead><tbody id="tbl-ch"></tbody></table></div></div></div></div>
+  </div>
+
+  <!-- Canal Correo -->
+  <div id="pane-co" class="pane">
+    <div class="row g-3 mb-3" id="co-cards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Correo</div><div class="cc-sub">Total tickets por mes</div></div></div><canvas id="ch-co-vol" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TTR mensual (horas) — Correo</div></div></div><canvas id="ch-co-ttr" height="130"></canvas></div></div>
+    </div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Correo</div></div></div><canvas id="ch-co-tipo" height="90"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Correo</div></div></div><canvas id="ch-co-ag" height="75"></canvas></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-envelope me-2" style="color:#7C3AED"></i>Tickets recientes — Correo</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TTR</th></tr></thead><tbody id="tbl-co"></tbody></table></div></div></div></div>
+  </div>
+
+  <!-- Agente IA -->
+  <div id="pane-ia" class="pane">
+    <div class="row g-3 mb-3" id="ia-cards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Agente IA</div><div class="cc-sub">Chats por mes</div></div></div><canvas id="ch-ia-vol" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución por categoría</div></div></div><canvas id="ch-ia-cat" height="130"></canvas></div></div>
+    </div>
+    <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Agente IA</div></div></div><canvas id="ch-ia-tipo" height="90"></canvas></div></div></div>
   </div>
 
   <!-- Operacional -->
@@ -273,7 +310,7 @@ function deserializeData(d){
   return{
     tickets:d.tickets.map(t=>({...t,fc:t.fc?new Date(t.fc):null,fci:t.fci?new Date(t.fci):null})),
     csatRows:d.csatRows.map(r=>({...r,f:r.f?new Date(r.f):null})),
-    aiChats:d.aiChats.map(r=>({...r,f:r.f?new Date(r.f):null}))
+    aiChats:d.aiChats.map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''}))
   };
 }
 
@@ -369,7 +406,7 @@ function process(raw){
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
   const csatRows=csatOp.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({v:csat(r["Satisfacion"]),f:parseD(r["Fecha de creación"])})).filter(r=>r.v!==null);
-  const aiChats=aiChatsRaw.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({f:parseD(r["Fecha de creación"]),mLbl:mLbl(parseD(r["Fecha de creación"])),wLbl:wLbl(parseD(r["Fecha de creación"]))}));
+  const aiChats=aiChatsRaw.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({f:parseD(r["Fecha de creación"]),mLbl:mLbl(parseD(r["Fecha de creación"])),wLbl:wLbl(parseD(r["Fecha de creación"])),cat:r["Categoria"]||"",tipo:r["Tipo de gestión"]||""}));
   return{tickets,csatRows,aiChats};
 }
 
@@ -514,6 +551,104 @@ function renderO(d){
   document.getElementById('tbl-tk').innerHTML=rec.map(t=>`<tr><td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td><td>${t.tipo||'—'}</td><td><span class="bs bs-pr">${t.canal}</span></td><td>${(t.agente||'').split(' ')[0]||'—'}</td><td><span class="bs ${closed(t.estado)?'bs-cl':'bs-op'}">${t.estado||'—'}</span></td><td style="color:#9CA3AF;font-size:11px">${t.fc?t.fc.toLocaleDateString('es-CO'):'—'}</td></tr>`).join('');
 }
 
+// ── Helpers de canal ─────────────────────
+function canalKpis(tickets,idCards,label){
+  const tot=tickets.length,cl=tickets.filter(t=>closed(t.estado)).length;
+  const ab=tickets.filter(t=>!closed(t.estado)).length;
+  const pct=tot?Math.round(cl/tot*100):0;
+  const ttA=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
+  const ttrA=ttA.length?+avg(ttA).toFixed(1):null;
+  document.getElementById(idCards).innerHTML=
+    sCard(`Tickets ${label}`,tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
+    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
+    sCard('Abiertos',ab.toLocaleString(),'En curso','tr-n','fas fa-folder-open','ic-a')+
+    sCard('TTR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t');
+}
+function canalTblRows(tickets,tbId){
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
+  const rows=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,30);
+  document.getElementById(tbId).innerHTML=rows.map(t=>`
+    <tr>
+      <td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td>
+      ${tbId==='tbl-ch'?`<td><span class="bs bs-pr">${t.canal||'—'}</span></td>`:''}
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
+      <td>${(t.agente||'').split(' ')[0]||'—'}</td>
+      <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
+      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
+      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
+      <td style="font-weight:600;color:${t.ttr&&t.ttr>24?'#DC2626':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
+    </tr>`).join('');
+}
+
+// ── Render Canal Chat ─────────────────────
+function renderCh(d){
+  const tickets=d.tickets.filter(t=>t.src==='chat');
+  canalKpis(tickets,'ch-cards','Chat');
+  const bm=grp(tickets,t=>t.mLbl);
+  const meses=MONTHS.filter(m=>bm[m]);
+  const web=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='Web').length);
+  const wap=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='WhatsApp').length);
+  const tot=meses.map(m=>(bm[m]||[]).length);
+  mk('ch-ch-vol',{type:'bar',data:{labels:meses,datasets:[
+    {label:'Total',data:tot,backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}
+  ]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-ch-split',{type:'bar',data:{labels:meses,datasets:[
+    {label:'Web',data:web,backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},
+    {label:'WhatsApp',data:wap,backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}
+  ]},options:GO});
+  const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
+  const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
+  mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
+  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
+  const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
+  mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  canalTblRows(tickets,'tbl-ch');
+}
+
+// ── Render Canal Correo ───────────────────
+function renderCo(d){
+  const tickets=d.tickets.filter(t=>t.src==='correo');
+  canalKpis(tickets,'co-cards','Correo');
+  const bm=grp(tickets,t=>t.mLbl);
+  const meses=MONTHS.filter(m=>bm[m]);
+  mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Tickets',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
+  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TTR (h)',data:tm,backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
+  const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
+  mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
+  const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
+  mk('ch-co-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},{label:'TTR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  canalTblRows(tickets,'tbl-co');
+}
+
+// ── Render Agente IA ──────────────────────
+function renderIA(d){
+  const chats=d.aiChats;
+  const tot=chats.length;
+  const bm=grp(chats,r=>r.mLbl);
+  const meses=MONTHS.filter(m=>bm[m]);
+  document.getElementById('ia-cards').innerHTML=
+    sCard('Total chats IA',tot.toLocaleString(),'Acumulado 2026','tr-n','fas fa-robot','ic-r')+
+    sCard('Meses activos',meses.length.toLocaleString(),'Con actividad','tr-n','fas fa-calendar','ic-v')+
+    sCard('Promedio mensual',meses.length?Math.round(tot/meses.length).toLocaleString():'—','Chats por mes','tr-n','fas fa-chart-bar','ic-t');
+  mk('ch-ia-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Chats',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  // Categoría desde aiChats — necesita campo 'cat'
+  const cats=grp(chats.filter(r=>r.cat),r=>r.cat);
+  const cd=Object.entries(cats).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,8);
+  if(cd.length){
+    mk('ch-ia-cat',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B','#EF4444','#0284C7','#7C3AED','#D97706'],borderWidth:0}]},options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}}}});
+  }
+  const tipos=grp(chats.filter(r=>r.tipo),r=>r.tipo);
+  const td=Object.entries(tipos).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
+  if(td.length){
+    mk('ch-ia-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Chats',data:td.map(d=>d.n),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  }
+}
+
 // ── Vista detalle ─────────────────────────
 let detRows=[],detSort={col:null,asc:true},detFrom='g';
 
@@ -603,15 +738,21 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d'].forEach(x=>{
+  ['g','o','d','ch','co','ia'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
     document.getElementById(`btn-${x}`).className=`bv bv-${x}`+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets'};
+  ['ch','co','ia'].forEach(x=>{
+    document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
+  });
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026'};
   document.getElementById('page-title').textContent=titles[v]||'';
+  if(v==='ch'&&window._dashData) renderCh(window._dashData);
+  if(v==='co'&&window._dashData) renderCo(window._dashData);
+  if(v==='ia'&&window._dashData) renderIA(window._dashData);
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
