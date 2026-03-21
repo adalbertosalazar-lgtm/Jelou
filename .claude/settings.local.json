@@ -27,7 +27,8 @@
       "WebFetch(domain:www.nice.com)",
       "WebFetch(domain:cxtrends.zendesk.com)",
       "WebFetch(domain:www.playvs.com)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(python3:*)"
     ]
   }
 }
