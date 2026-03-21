@@ -91,8 +91,6 @@ table.dt tr:hover td{background:#FAFAFA}
 .admin-btn:hover{background:rgba(124,58,237,.25)}
 .sc-click{cursor:pointer;transition:.15s}
 .sc-click:hover{box-shadow:0 4px 16px rgba(124,58,237,.18);transform:translateY(-1px)}
-.sc-click .ver-det{font-size:10px;color:#7C3AED;font-weight:600;margin-top:6px;display:none}
-.sc-click:hover .ver-det{display:block}
 .det-hd{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
 .det-back{background:#EDE9FE;color:#7C3AED;border:none;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
 .det-back:hover{background:#DDD6FE}
@@ -119,6 +117,7 @@ table.dt tr:hover td{background:#FAFAFA}
 .hm-table th{padding:6px 10px;text-align:left;font-size:10px;font-weight:700;color:#9CA3AF;text-transform:uppercase;border-bottom:1px solid #EDE9FE;background:#FAFAFA;white-space:nowrap}
 .hm-table td{padding:5px 8px;border:1px solid #F3F4F6;text-align:center;font-size:11px;font-weight:600;min-width:52px}
 .hm-agent{text-align:left!important;font-weight:600!important;color:#374151;white-space:nowrap;padding-left:12px!important}
+canvas{cursor:pointer}
 </style>
 </head>
 <body>
@@ -168,16 +167,16 @@ table.dt tr:hover td{background:#FAFAFA}
   <!-- Gerencial -->
   <div id="pane-g" class="pane">
     <div class="row g-3 mb-3" id="g-cards"></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de tickets</div><div class="cc-sub">Tickets abiertos, resueltos y chats IA por mes</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de casos</div><div class="cc-sub">Casos abiertos, resueltos y chats IA por mes</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT mensual</div><div class="cc-sub">Satisfacción promedio (1–5)</div></div></div><canvas id="ch-csat" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3">
       <div class="col-md-5"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución por canal</div></div></div><canvas id="ch-canal" height="150"></canvas></div></div>
-      <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tickets por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
+      <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Casos por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
     </div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total tickets y TMR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total casos y TMR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
     <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR por agente y mes (horas)</div><div class="cc-sub">Resuelto por — escala de color: verde &lt;1h · amarillo 1-2h · rojo &gt;2h</div></div></div><div class="hm-wrap" id="hm-agente-mes"></div></div></div></div>
   </div>
 
@@ -187,14 +186,14 @@ table.dt tr:hover td{background:#FAFAFA}
       <button class="det-back" onclick="backFromDetail()"><i class="fas fa-arrow-left"></i> Volver</button>
       <div class="det-title" id="det-title">Detalle</div>
       <div class="det-count" id="det-count"></div>
-      <input class="det-search" id="det-search" placeholder="Buscar ticket o agente..." oninput="filterDetail()">
+      <input class="det-search" id="det-search" placeholder="Buscar caso o agente..." oninput="filterDetail()">
     </div>
     <div class="tc">
       <div style="overflow-x:auto">
         <table class="dt" id="det-table">
           <thead>
             <tr>
-              <th class="th-sort" onclick="sortDetail('tk')">Ticket</th>
+              <th class="th-sort" onclick="sortDetail('tk')">Caso</th>
               <th class="th-sort" onclick="sortDetail('agente')">Tech Support</th>
               <th class="th-sort" onclick="sortDetail('canal')">Canal</th>
               <th class="th-sort" onclick="sortDetail('tipo')">Tipo de gestión</th>
@@ -214,7 +213,7 @@ table.dt tr:hover td{background:#FAFAFA}
   <div id="pane-ch" class="pane">
     <div class="row g-3 mb-3" id="ch-cards"></div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Chat</div><div class="cc-sub">Total tickets por mes</div></div></div><canvas id="ch-ch-vol" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Chat</div><div class="cc-sub">Total casos por mes</div></div></div><canvas id="ch-ch-vol" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Web vs WhatsApp por mes</div><div class="cc-sub">Desglose por canal</div></div></div><canvas id="ch-ch-split" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3">
@@ -222,19 +221,19 @@ table.dt tr:hover td{background:#FAFAFA}
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR mensual (horas) — Chat</div></div></div><canvas id="ch-ch-ttr" height="150"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Chat</div></div></div><canvas id="ch-ch-ag" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Tickets recientes — Chat</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Canal</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-ch"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Casos recientes — Chat</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Caso</th><th>Canal</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-ch"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Canal Correo -->
   <div id="pane-co" class="pane">
     <div class="row g-3 mb-3" id="co-cards"></div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Correo</div><div class="cc-sub">Total tickets por mes</div></div></div><canvas id="ch-co-vol" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Correo</div><div class="cc-sub">Total casos por mes</div></div></div><canvas id="ch-co-vol" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR mensual (horas) — Correo</div></div></div><canvas id="ch-co-ttr" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Tipo de gestión — Correo</div></div></div><canvas id="ch-co-tipo" height="90"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente — Correo</div></div></div><canvas id="ch-co-ag" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-envelope me-2" style="color:#7C3AED"></i>Tickets recientes — Correo</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-co"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-envelope me-2" style="color:#7C3AED"></i>Casos recientes — Correo</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Caso</th><th>Tipo</th><th>Agente</th><th>Estado</th><th>Fecha creación</th><th>Fecha cierre</th><th>TMR</th></tr></thead><tbody id="tbl-co"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Agente IA -->
@@ -251,24 +250,24 @@ table.dt tr:hover td{background:#FAFAFA}
   <div id="pane-sla" class="pane">
     <div class="row g-3 mb-3" id="sla-cards"></div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TMR — Todos los canales</div><div class="cc-sub">Tickets por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">SLA Compliance mensual</div><div class="cc-sub">% tickets resueltos en &lt;60 min por mes</div></div></div><canvas id="ch-sla-trend" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TMR — Todos los canales</div><div class="cc-sub">Casos por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">SLA Compliance mensual</div><div class="cc-sub">% casos resueltos en &lt;60 min por mes</div></div></div><canvas id="ch-sla-trend" height="130"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3">
-      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por canal</div><div class="cc-sub">Tickets que incumplieron &gt;60 min</div></div></div><canvas id="ch-sla-canal" height="150"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por canal</div><div class="cc-sub">Casos que incumplieron &gt;60 min</div></div></div><canvas id="ch-sla-canal" height="150"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Breaches por tipo de gestión</div><div class="cc-sub">Top tipos con mayor incumplimiento</div></div></div><canvas id="ch-sla-tipo" height="150"></canvas></div></div>
     </div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT vs TMR — Impacto del tiempo en satisfacción</div><div class="cc-sub">CSAT promedio por tramo de resolución</div></div></div><canvas id="ch-sla-csat" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-exclamation-circle me-2" style="color:#EF4444"></i>Tickets que incumplieron SLA (&gt;60 min)</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Agente</th><th>Canal</th><th>Tipo de gestión</th><th>Estado</th><th>TMR real</th><th>Exceso</th></tr></thead><tbody id="tbl-breach"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-exclamation-circle me-2" style="color:#EF4444"></i>Casos que incumplieron SLA (&gt;60 min)</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Caso</th><th>Agente</th><th>Canal</th><th>Tipo de gestión</th><th>Estado</th><th>TMR real</th><th>Exceso</th></tr></thead><tbody id="tbl-breach"></tbody></table></div></div></div></div>
   </div>
 
   <!-- Operacional -->
   <div id="pane-o" class="pane">
     <div class="row g-3 mb-3" id="o-cards"></div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Tickets (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Casos (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TMR prom (h)</th><th>SLA <60min</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Tickets recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Ticket</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th><th>Transcurrido</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
+    <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Casos recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Caso</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th><th>Transcurrido</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
   </div>
 </div>
 
@@ -282,33 +281,33 @@ table.dt tr:hover td{background:#FAFAFA}
       <div class="col-md-6">
         <div class="cc h-100">
           <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Métricas de tiempo</div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">TMR — Tiempo Medio de Resolución</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo promedio desde que se crea un ticket hasta que se cierra con estado "Resuelto". Se calcula en horas. Meta del equipo: <strong style="color:#7C3AED">&lt;1 hora</strong>.</div></div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">SLA &lt;60 min</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Porcentaje de tickets resueltos con TMR menor o igual a 60 minutos sobre el total de tickets con resolución registrada. Meta: <strong style="color:#7C3AED">&ge;85%</strong>. Alerta: &lt;70%.</div></div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Breach</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Ticket que incumplió la meta de resolución. Un breach ocurre cuando el TMR supera los 60 minutos. El exceso indica cuánto tiempo adicional tomó sobre la meta.</div></div>
-          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Transcurrido</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo que lleva abierto un ticket actualmente (no resuelto). Se colorea: verde &lt;45 min, naranja 45-60 min, rojo &gt;60 min.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">TMR — Tiempo Medio de Resolución</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo promedio desde que se crea un caso hasta que se cierra con estado "Resuelto". Se calcula en horas. Meta del equipo: <strong style="color:#7C3AED">&lt;1 hora</strong>.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">SLA &lt;60 min</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Porcentaje de casos resueltos con TMR menor o igual a 60 minutos sobre el total de casos con resolución registrada. Meta: <strong style="color:#7C3AED">&ge;85%</strong>. Alerta: &lt;70%.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Breach</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Caso que incumplió la meta de resolución. Un breach ocurre cuando el TMR supera los 60 minutos. El exceso indica cuánto tiempo adicional tomó sobre la meta.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Transcurrido</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tiempo que lleva abierto un caso actualmente (no resuelto). Se colorea: verde &lt;45 min, naranja 45-60 min, rojo &gt;60 min.</div></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="cc h-100">
           <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Métricas de calidad</div>
           <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">CSAT — Customer Satisfaction Score</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Puntuación de satisfacción del cliente en escala 1-5. Se obtiene de encuestas post-cierre. Meta: <strong style="color:#7C3AED">&ge;4.0</strong>. Fuente: archivo CSAT Operadores.</div></div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Único estado que cuenta como ticket concluido. Los estados Escalado, Investigando, Solicitud Interna, Abierto, Pendiente y Respuesta cliente se consideran abiertos.</div></div>
-          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Desestimado</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets excluidos de todos los cálculos. No se contabilizan en volumen, TMR, ni SLA compliance.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Único estado que cuenta como caso concluido. Los estados Escalado, Investigando, Solicitud Interna, Abierto, Pendiente y Respuesta cliente se consideran abiertos.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Desestimado</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Casos excluidos de todos los cálculos. No se contabilizan en volumen, TMR, ni SLA compliance.</div></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="cc h-100">
           <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Canales</div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — Web</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos vía chat en plataforma web. Canal síncrono: el usuario está presente durante la conversación. Mayor tasa de resolución rápida.</div></div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — WhatsApp</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos vía WhatsApp. Canal semi-asíncrono: el tiempo de respuesta del cliente puede inflar el TMR. Requiere interpretación cuidadosa del SLA.</div></div>
-          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Correo</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Tickets atendidos por correo electrónico. Canal asíncrono con mayor varianza en TMR. La meta de &lt;60 min es muy agresiva para este canal.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — Web</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Casos atendidos vía chat en plataforma web. Canal síncrono: el usuario está presente durante la conversación. Mayor tasa de resolución rápida.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Chat — WhatsApp</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Casos atendidos vía WhatsApp. Canal semi-asíncrono: el tiempo de respuesta del cliente puede inflar el TMR. Requiere interpretación cuidadosa del SLA.</div></div>
+          <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Correo</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Casos atendidos por correo electrónico. Canal asíncrono con mayor varianza en TMR. La meta de &lt;60 min es muy agresiva para este canal.</div></div>
         </div>
       </div>
       <div class="col-md-6">
         <div class="cc h-100">
           <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px">Campos del sistema</div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Tech Support</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente asignado al ticket. Aparece en vistas de rendimiento por agente y tabla de carga operacional.</div></div>
-          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto por</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente que efectivamente cerró el ticket. Puede diferir de Tech Support. Se usa en la matriz de TMR por agente y mes.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Tech Support</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente asignado al caso. Aparece en vistas de rendimiento por agente y tabla de carga operacional.</div></div>
+          <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Resuelto por</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Agente que efectivamente cerró el caso. Puede diferir de Tech Support. Se usa en la matriz de TMR por agente y mes.</div></div>
           <div style="margin-bottom:14px"><div style="font-weight:700;color:#1A0A2E;font-size:13px">Agente IA</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Conversaciones manejadas por el agente de inteligencia artificial de Jelou antes de escalar a un agente humano. Fuente: Chats AI Agent.</div></div>
           <div><div style="font-weight:700;color:#1A0A2E;font-size:13px">Actualizado hasta</div><div style="font-size:12px;color:#6B7280;margin-top:3px">Fecha del registro más reciente en los archivos cargados. Indica hasta qué punto en el tiempo el dashboard refleja datos reales.</div></div>
         </div>
@@ -563,7 +562,7 @@ const GO={responsive:true,maintainAspectRatio:true,plugins:{legend:{labels:{font
 function sCard(lbl,val,sub,cls,ico,ic,onclick){
   const clickAttr=onclick?`onclick="${onclick}"`:'';
   const clickCls=onclick?' sc-click':'';
-  return`<div class="col-6 col-md-4 col-lg"><div class="sc${clickCls} d-flex justify-content-between align-items-start" ${clickAttr}><div><div class="lbl">${lbl}</div><div class="val">${val??'—'}</div><div class="tr ${cls||'tr-n'}">${sub||''}</div>${onclick?'<div class="ver-det"><i class="fas fa-table me-1"></i>Ver detalle</div>':''}</div><div class="iw ${ic}"><i class="${ico}"></i></div></div></div>`;
+  return`<div class="col-6 col-md-4 col-lg"><div class="sc${clickCls} d-flex justify-content-between align-items-start" ${clickAttr}><div><div class="lbl">${lbl}</div><div class="val">${val??'—'}</div><div class="tr ${cls||'tr-n'}">${sub||''}</div></div><div class="iw ${ic}"><i class="${ico}"></i></div></div></div>`;
 }
 
 function renderG(d){
@@ -584,17 +583,17 @@ function renderG(d){
   const slaCls=slaPct===null?'tr-n':slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn';
   const slaColor=slaPct===null?'#7C3AED':slaPct>=85?'#10B981':slaPct>=70?'#F59E0B':'#EF4444';
   document.getElementById('g-cards').innerHTML=
-    sCard('Tickets 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los tickets')")+
-    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Tickets resueltos')")+
-    sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'Sin datos',slaCls,'fas fa-bullseye','ic-a',"showDetail('breach','Tickets que incumplieron SLA')")+
-    sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Tickets con TMR calculado')")+
+    sCard('Casos 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los casos')")+
+    sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Casos resueltos')")+
+    sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'Sin datos',slaCls,'fas fa-bullseye','ic-a',"showDetail('breach','Casos que incumplieron SLA')")+
+    sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
     sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-v',null)+
     sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
   mk('ch-vol',{type:'line',data:{labels:meses,datasets:[
-    {label:'Tickets',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
+    {label:'Casos',data:evo.map(e=>e.tk),borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
     {label:'Resueltos',data:evo.map(e=>e.cl),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.06)',fill:true,borderWidth:2,pointRadius:3,tension:.3},
     {label:'Chats IA',data:evo.map(e=>e.ai),borderColor:'#F59E0B',backgroundColor:'transparent',borderWidth:2,pointRadius:3,tension:.3,borderDash:[4,4]},
-  ]},options:GO});
+  ]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Casos — ${m}`);}}});
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
   const tramoData=[
@@ -605,16 +604,17 @@ function renderG(d){
     tickets.filter(t=>t.ttr>1&&t.ttr<=1.5).length,
     tickets.filter(t=>t.ttr>1.5).length,
   ];
-  mk('ch-ttr',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Tickets',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',xMin:-0.5,xMax:3.5,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta <60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}});
+  const tramoRanges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,720]];
+  mk('ch-ttr',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Casos',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',xMin:-0.5,xMax:3.5,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta <60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const[lo,hi]=tramoRanges[el[0].index];showDetailFiltered(tickets.filter(t=>t.ttr>lo&&t.ttr<=hi),`TMR: ${tramoLbls[el[0].index]}`);}}});
   const cm2=evo.filter(e=>e.cs);
   mk('ch-csat',{type:'line',data:{labels:cm2.map(e=>e.m),datasets:[{label:'CSAT',data:cm2.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
   const bc=grp(tickets,t=>t.canal);const cd=Object.entries(bc).map(([c,a])=>({c,n:a.length}));
-  mk('ch-canal',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}}}});
+  mk('ch-canal',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=cd[el[0].index].c;showDetailFiltered(tickets.filter(t=>t.canal===c),`Canal: ${c}`);}}}  );
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
-  mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Tipo: ${tipo}`);}}}  );
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Agente: ${ag}`);}}}  );
   renderHeatmap(tickets,meses,'hm-agente-mes');
 }
 
@@ -622,20 +622,22 @@ function renderHeatmap(tickets,meses,containerId){
   const resolved=tickets.filter(t=>t.resolvedBy&&t.ttr>0&&t.ttr<720);
   const agentes=[...new Set(resolved.map(t=>t.resolvedBy))].sort();
   if(!agentes.length||!meses.length){document.getElementById(containerId).innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';return;}
-  const cell=(v)=>{
-    if(v===null)return`<td style="background:#F9FAFB;color:#D1D5DB">—</td>`;
+  const cell=(v,agente,mes)=>{
+    if(v===null)return`<td style="background:#F9FAFB;color:#D1D5DB;min-width:52px">—</td>`;
     const bg=v<=1?`rgba(16,185,129,${Math.min(0.15+v*0.5,0.85)})`:v<=2?`rgba(245,158,11,${Math.min(0.15+(v-1)*0.5,0.85)})`:`rgba(239,68,68,${Math.min(0.15+(v-2)*0.35,0.85)})`;
     const color=v<=1?'#065F46':v<=2?'#92400E':'#991B1B';
-    return`<td style="background:${bg};color:${color}">${v.toFixed(1)}h</td>`;
+    const click=agente&&mes?`onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(agente)}')&&t.mLbl==='${mes}'),decodeURIComponent('${encodeURIComponent(agente+' — '+mes)}')),event.stopPropagation()"`:
+      agente?`onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(agente)}')),decodeURIComponent('${encodeURIComponent('Promedio: '+agente)}')),event.stopPropagation()"`:''
+    return`<td style="background:${bg};color:${color};cursor:${click?'pointer':'default'}" ${click}>${v.toFixed(1)}h</td>`;
   };
   const rows=agentes.map(a=>{
     const cells=meses.map(m=>{
       const ts=resolved.filter(t=>t.resolvedBy===a&&t.mLbl===m);
-      return ts.length?+avg(ts.map(t=>t.ttr)).toFixed(2):null;
+      return{v:ts.length?+avg(ts.map(t=>t.ttr)).toFixed(2):null,a,m};
     });
     const total=resolved.filter(t=>t.resolvedBy===a);
     const totalAvg=total.length?+avg(total.map(t=>t.ttr)).toFixed(2):null;
-    return`<tr><td class="hm-agent">${a.split(' ').slice(0,2).join(' ')}</td>${cells.map(cell).join('')}${cell(totalAvg)}</tr>`;
+    return`<tr><td class="hm-agent" style="cursor:pointer" onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(a)}')),decodeURIComponent('${encodeURIComponent('Resuelto por: '+a)}')),event.stopPropagation()">${a.split(' ').slice(0,2).join(' ')}</td>${cells.map(c=>cell(c.v,c.a,c.m)).join('')}${cell(totalAvg,a,null)}</tr>`;
   });
   document.getElementById(containerId).innerHTML=`
     <table class="hm-table">
@@ -653,17 +655,17 @@ function renderO(d){
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);const slaOk=tt.filter(t=>t<=1).length;const slaPct=tt.length?Math.round(slaOk/tt.length*100):null;return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null,slaPct};}).sort((a,b)=>b.tot-a.tot);
   document.getElementById('o-cards').innerHTML=
-    sCard('Tickets esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Tickets esta semana')")+
-    sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Tickets abiertos')")+
+    sCard('Casos esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Casos esta semana')")+
+    sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Casos abiertos')")+
     sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
-    sCard('TMR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Tickets con TMR calculado')")+
-    sCard('Agentes',ags.length,'Con tickets asignados','tr-n','fas fa-user-tie','ic-r',null);
+    sCard('TMR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
+    sCard('Agentes',ags.length,'Con casos asignados','tr-n','fas fa-user-tie','ic-r',null);
   mk('ch-sem',{type:'bar',data:{labels:sems,datasets:[
-    {type:'bar',label:'Tickets',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
+    {type:'bar',label:'Casos',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
     {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
-  ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}}}});
+  ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}},onClick:(e,el)=>{if(!el.length)return;const s=sems[el[0].index];showDetailFiltered(tickets.filter(t=>t.wLbl===s),`Semana: ${s}`);}}}  );
   const ts2=evo.filter(e=>e.ttr);
-  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const s=ts2[el[0].index].s;showDetailFiltered(tickets.filter(t=>t.wLbl===s),`Semana TMR: ${s}`);}}}  );
   document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>4?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>1?'#DC2626':a.ttr&&a.ttr>0.75?'#D97706':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td style="font-weight:700;color:${a.slaPct===null?'#9CA3AF':a.slaPct>=85?'#059669':a.slaPct>=70?'#D97706':'#DC2626'}">${a.slaPct!==null?a.slaPct+'%':'—'}</td><td><span class="bs ${a.op>4?'bs-op':'bs-cl'}">${a.op>4?'Carga alta':'Normal'}</span></td></tr>`).join('');
   const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
   const now=new Date();
@@ -686,7 +688,7 @@ function canalKpis(tickets,idCards,label){
   const slaPct=ttA.length?Math.round(slaOk/ttA.length*100):null;
   const slaCls=slaPct===null?'tr-n':slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn';
   document.getElementById(idCards).innerHTML=
-    sCard(`Tickets ${label}`,tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
+    sCard(`Casos ${label}`,tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v')+
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g')+
     sCard('Abiertos',ab.toLocaleString(),'En curso','tr-n','fas fa-folder-open','ic-a')+
     sCard('SLA <60 min',slaPct!==null?`${slaPct}%`:'—',slaPct!==null?(slaPct>=85?'Sobre meta ↑':'Bajo meta ↓'):'',slaCls,'fas fa-bullseye','ic-a')+
@@ -727,19 +729,20 @@ function renderCh(d){
   const tot=meses.map(m=>(bm[m]||[]).length);
   mk('ch-ch-vol',{type:'bar',data:{labels:meses,datasets:[
     {label:'Total',data:tot,backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}
-  ]},options:{...GO,plugins:{legend:{display:false}}}});
+  ]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Chat — ${m}`);}}}  );
+  const chSubLabels=['Web','WhatsApp'];
   mk('ch-ch-split',{type:'bar',data:{labels:meses,datasets:[
     {label:'Web',data:web,backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},
     {label:'WhatsApp',data:wap,backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}
-  ]},options:GO});
+  ]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];const sub=chSubLabels[el[0].datasetIndex];showDetailFiltered(tickets.filter(t=>t.mLbl===m&&t.canal===sub),`${sub} — ${m}`);}}}  );
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
-  mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Chat — Tipo: ${tipo}`);}}}  );
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
   mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Chat — Agente: ${ag}`);}}}  );
   canalTblRows(tickets,'tbl-ch');
 }
 
@@ -749,15 +752,15 @@ function renderCo(d){
   canalKpis(tickets,'co-cards','Correo');
   const bm=grp(tickets,t=>t.mLbl);
   const meses=MONTHS.filter(m=>bm[m]);
-  mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Tickets',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
+  mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Casos',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Correo — ${m}`);}}}  );
   const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
   mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
-  mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Tickets',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Correo — Tipo: ${tipo}`);}}}  );
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-co-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Tickets',data:ad.map(d=>d.tot),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:GO});
+  mk('ch-co-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Correo — Agente: ${ag}`);}}}  );
   canalTblRows(tickets,'tbl-co');
 }
 
@@ -792,10 +795,10 @@ function renderSLA(d){
   const ok=withTTR.filter(t=>t.ttr<=1);
   const slaPct=withTTR.length?Math.round(ok.length/withTTR.length*100):null;
   document.getElementById('sla-cards').innerHTML=
-    sCard('SLA Compliance',slaPct!==null?`${slaPct}%`:'—','% tickets <60 min',slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn','fas fa-bullseye','ic-g')+
-    sCard('Breaches',breaches.length.toLocaleString(),'Tickets >60 min','tr-dn','fas fa-times-circle','ic-r')+
-    sCard('TMR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets dentro de meta','tr-up','fas fa-check','ic-g')+
-    sCard('TMR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Tickets fuera de meta','tr-dn','fas fa-clock','ic-r');
+    sCard('SLA Compliance',slaPct!==null?`${slaPct}%`:'—','% casos <60 min',slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn','fas fa-bullseye','ic-g')+
+    sCard('Breaches',breaches.length.toLocaleString(),'Casos >60 min','tr-dn','fas fa-times-circle','ic-r')+
+    sCard('TMR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Casos dentro de meta','tr-up','fas fa-check','ic-g')+
+    sCard('TMR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Casos fuera de meta','tr-dn','fas fa-clock','ic-r');
   // Histograma tramos
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
@@ -807,20 +810,21 @@ function renderSLA(d){
     withTTR.filter(t=>t.ttr>1&&t.ttr<=1.5).length,
     withTTR.filter(t=>t.ttr>1.5).length,
   ];
-  mk('ch-sla-hist',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Tickets',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}}}});
+  const slaRanges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,720]];
+  mk('ch-sla-hist',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Casos',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const[lo,hi]=slaRanges[el[0].index];showDetailFiltered(withTTR.filter(t=>t.ttr>lo&&t.ttr<=hi),`TMR: ${tramoLbls[el[0].index]}`);}}}  );
   // Tendencia SLA mensual
   const bm=grp(withTTR,t=>t.mLbl);
   const meses=MONTHS.filter(m=>bm[m]);
   const slaTrend=meses.map(m=>{const ts=bm[m]||[];return ts.length?Math.round(ts.filter(t=>t.ttr<=1).length/ts.length*100):null;});
-  mk('ch-sla-trend',{type:'line',data:{labels:meses,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}}}});
+  mk('ch-sla-trend',{type:'line',data:{labels:meses,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(withTTR.filter(t=>t.mLbl===m),`SLA — ${m}`);}}}  );
   // Breaches por canal
   const bc=grp(breaches,t=>t.canal);
   const bcd=Object.entries(bc).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n);
-  mk('ch-sla-canal',{type:'doughnut',data:{labels:bcd.map(d=>d.c),datasets:[{data:bcd.map(d=>d.n),backgroundColor:['#EF4444','#D97706','#7C3AED','#4F46E5'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}}}});
+  mk('ch-sla-canal',{type:'doughnut',data:{labels:bcd.map(d=>d.c),datasets:[{data:bcd.map(d=>d.n),backgroundColor:['#EF4444','#D97706','#7C3AED','#4F46E5'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=bcd[el[0].index].c;showDetailFiltered(breaches.filter(t=>t.canal===c),`Breaches — Canal: ${c}`);}}}  );
   // Breaches por tipo
   const bt=grp(breaches.filter(t=>t.tipo),t=>t.tipo);
   const btd=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
-  mk('ch-sla-tipo',{type:'bar',data:{labels:btd.map(d=>d.t),datasets:[{label:'Breaches',data:btd.map(d=>d.n),backgroundColor:'rgba(239,68,68,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}}}});
+  mk('ch-sla-tipo',{type:'bar',data:{labels:btd.map(d=>d.t),datasets:[{label:'Breaches',data:btd.map(d=>d.n),backgroundColor:'rgba(239,68,68,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=btd[el[0].index].t;showDetailFiltered(breaches.filter(t=>t.tipo===tipo),`Breaches — Tipo: ${tipo}`);}}}  );
   // CSAT vs TTR tramos
   const csatByTramo=tramoLbls.map((l,i)=>{
     const ranges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,999]];
@@ -856,23 +860,27 @@ const estadoBadge=e=>{
   return'bs-op';
 };
 
+function showDetailFiltered(rows,label){
+  detFrom=currentView;
+  detRows=[...rows].sort((a,b)=>(b.fc||0)-(a.fc||0));
+  buildDetailTable(label,detRows);
+}
 function showDetail(filter,label){
   detFrom=currentView;
   const{tickets,aiChats}=window._dashData;
   const sem=wLbl(new Date());
   let rows;
-  if(filter==='all')          rows=[...tickets];
+  if(filter==='all')            rows=[...tickets];
   else if(filter==='resueltos') rows=tickets.filter(t=>closed(t.estado));
   else if(filter==='abiertos')  rows=tickets.filter(t=>!closed(t.estado));
   else if(filter==='con-ttr')   rows=tickets.filter(t=>t.ttr>0&&t.ttr<720);
-  else if(filter==='breach')    rows=tickets.filter(t=>t.ttr>1&&t.ttr<720);
   else if(filter==='semana')    rows=tickets.filter(t=>t.wLbl===sem);
+  else if(filter==='breach')    rows=tickets.filter(t=>t.ttr>1&&t.ttr<720);
   else if(filter==='ia'){
     detRows=aiChats.map(r=>({tk:'—',agente:'IA Agent',canal:'Chat IA',tipo:'—',estado:'—',fc:r.f,fci:null,ttr:null}));
     buildDetailTable(label,detRows);return;
   }
-  detRows=[...rows].sort((a,b)=>(b.fc||0)-(a.fc||0));
-  buildDetailTable(label,detRows);
+  showDetailFiltered(rows,label);
 }
 
 function buildDetailTable(label,rows){
@@ -945,7 +953,7 @@ function setView(v){
   ['ch','co','ia','sla','glos'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de tickets',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario'};
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
