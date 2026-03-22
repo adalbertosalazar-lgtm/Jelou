@@ -130,8 +130,8 @@ canvas{cursor:pointer}
   </div>
   <nav class="sb-nav">
     <div class="nav-lbl">Vistas</div>
-    <div class="ni active" id="nav-g" onclick="setView('g')"><i class="fas fa-chart-line"></i>Vista gerencial</div>
-    <div class="ni" id="nav-o" onclick="setView('o')"><i class="fas fa-tasks"></i>Vista operacional</div>
+    <div class="ni active" id="nav-g" onclick="setView('g')"><i class="fas fa-chart-line"></i>Overview</div>
+    <div class="ni" id="nav-o" onclick="setView('o')"><i class="fas fa-tasks"></i>Ops</div>
     <div class="nav-lbl" style="margin-top:10px">Canales</div>
     <div class="ni" id="nav-ch" onclick="setView('ch')"><i class="fas fa-comments"></i>Chat</div>
     <div class="ni" id="nav-co" onclick="setView('co')"><i class="fas fa-envelope"></i>Correo</div>
@@ -148,11 +148,11 @@ canvas{cursor:pointer}
 
 <!-- Topbar -->
 <div class="topbar">
-  <div class="tb-title" id="page-title">Vista gerencial — 2026</div>
+  <div class="tb-title" id="page-title">Overview — 2026</div>
   <div class="tb-right">
     <div class="badge-live" id="live-badge" style="display:none">En vivo</div>
-    <button class="bv bv-g active" id="btn-g" onclick="setView('g')">Gerencial</button>
-    <button class="bv bv-o" id="btn-o" onclick="setView('o')">Operacional</button>
+    <button class="bv bv-g active" id="btn-g" onclick="setView('g')">Overview</button>
+    <button class="bv bv-o" id="btn-o" onclick="setView('o')">Ops</button>
   </div>
 </div>
 
@@ -167,6 +167,15 @@ canvas{cursor:pointer}
 
   <!-- Gerencial -->
   <div id="pane-g" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <button id="g-btn-m" class="bv bv-g active" onclick="gSetMode('m')">Mensual</button>
+      <button id="g-btn-w" class="bv bv-g" onclick="gSetMode('w')">Semanal</button>
+      <span style="display:inline-block;width:1px;background:#E5E7EB;align-self:stretch;margin:0 4px"></span>
+      <button id="g-canal-all" class="bv bv-g active" onclick="gSetCanal('all')">Todos</button>
+      <button id="g-canal-Web" class="bv bv-g" onclick="gSetCanal('Web')">Chat Web</button>
+      <button id="g-canal-WhatsApp" class="bv bv-g" onclick="gSetCanal('WhatsApp')">WhatsApp</button>
+      <button id="g-canal-Correo" class="bv bv-g" onclick="gSetCanal('Correo')">Correo</button>
+    </div>
     <div class="row g-3 mb-3" id="g-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de casos</div><div class="cc-sub">Volumen mensual por canal</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3">
@@ -177,8 +186,11 @@ canvas{cursor:pointer}
       <div class="col-md-5"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución por canal</div></div></div><canvas id="ch-canal" height="150"></canvas></div></div>
       <div class="col-md-7"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Casos por tipo de gestión</div></div></div><canvas id="ch-tipo" height="150"></canvas></div></div>
     </div>
-    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Rendimiento por agente</div><div class="cc-sub">Total casos y TMR promedio</div></div></div><canvas id="ch-agente" height="75"></canvas></div></div></div>
-    <div class="row g-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR por agente y mes (horas)</div><div class="cc-sub">Resuelto por — escala de color: verde &lt;1h · amarillo 1-2h · rojo &gt;2h</div></div></div><div class="hm-wrap" id="hm-agente-mes"></div></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR por equipo y periodo (horas)</div><div class="cc-sub">Resuelto por — escala de color: verde &lt;1h · amarillo 1-2h · rojo &gt;2h</div></div></div><div class="hm-wrap" id="hm-agente-mes"></div></div></div></div>
+    <div class="row g-3">
+      <div class="col-md-7"><div class="cc h-100"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-trophy me-2" style="color:#F59E0B"></i>Top 5 clientes por volumen</div><div class="cc-sub">Casos totales con desglose por canal</div></div></div><canvas id="ch-g-top5" height="160"></canvas></div></div>
+      <div class="col-md-5"><div class="cc h-100"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-signal me-2" style="color:#7C3AED"></i>Canal principal por cliente</div><div class="cc-sub">Canal con más casos para cada ICP</div></div></div><div id="g-canal-cards" style="margin-top:8px"></div></div></div>
+    </div>
   </div>
 
   <!-- Detalle -->
@@ -212,6 +224,10 @@ canvas{cursor:pointer}
 
   <!-- Canal Chat -->
   <div id="pane-ch" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button id="ch-btn-m" class="bv bv-g active" onclick="chSetMode('m')">Mensual</button>
+      <button id="ch-btn-w" class="bv bv-g" onclick="chSetMode('w')">Semanal</button>
+    </div>
     <div class="row g-3 mb-3" id="ch-cards"></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Chat</div><div class="cc-sub">Total casos por mes</div></div></div><canvas id="ch-ch-vol" height="130"></canvas></div></div>
@@ -227,6 +243,10 @@ canvas{cursor:pointer}
 
   <!-- Canal Correo -->
   <div id="pane-co" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button id="co-btn-m" class="bv bv-g active" onclick="coSetMode('m')">Mensual</button>
+      <button id="co-btn-w" class="bv bv-g" onclick="coSetMode('w')">Semanal</button>
+    </div>
     <div class="row g-3 mb-3" id="co-cards"></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Correo</div><div class="cc-sub">Total casos por mes</div></div></div><canvas id="ch-co-vol" height="130"></canvas></div></div>
@@ -239,6 +259,10 @@ canvas{cursor:pointer}
 
   <!-- Agente IA -->
   <div id="pane-ia" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button id="ia-btn-m" class="bv bv-g active" onclick="iaSetMode('m')">Mensual</button>
+      <button id="ia-btn-w" class="bv bv-g" onclick="iaSetMode('w')">Semanal</button>
+    </div>
     <div class="row g-3 mb-3" id="ia-cards"></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual — Agente IA</div><div class="cc-sub">Chats por mes</div></div></div><canvas id="ch-ia-vol" height="130"></canvas></div></div>
@@ -249,6 +273,15 @@ canvas{cursor:pointer}
 
   <!-- Análisis SLA -->
   <div id="pane-sla" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+      <button id="sla-btn-m" class="bv bv-g active" onclick="slaSetMode('m')">Mensual</button>
+      <button id="sla-btn-w" class="bv bv-g" onclick="slaSetMode('w')">Semanal</button>
+      <span style="display:inline-block;width:1px;background:#E5E7EB;align-self:stretch;margin:0 4px"></span>
+      <button id="sla-canal-all" class="bv bv-g active" onclick="slaSetCanal('all')">Todos</button>
+      <button id="sla-canal-Web" class="bv bv-g" onclick="slaSetCanal('Web')">Chat Web</button>
+      <button id="sla-canal-WhatsApp" class="bv bv-g" onclick="slaSetCanal('WhatsApp')">WhatsApp</button>
+      <button id="sla-canal-Correo" class="bv bv-g" onclick="slaSetCanal('Correo')">Correo</button>
+    </div>
     <div class="row g-3 mb-3" id="sla-cards"></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Distribución TMR — Todos los canales</div><div class="cc-sub">Casos por tramo de tiempo</div></div></div><canvas id="ch-sla-hist" height="130"></canvas></div></div>
@@ -264,6 +297,10 @@ canvas{cursor:pointer}
 
   <!-- Operacional -->
   <div id="pane-o" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px">
+      <button id="o-btn-m" class="bv bv-g" onclick="oSetMode('m')">Mensual</button>
+      <button id="o-btn-w" class="bv bv-g active" onclick="oSetMode('w')">Semanal</button>
+    </div>
     <div class="row g-3 mb-3" id="o-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución semanal</div><div class="cc-sub">Casos (barras) y CSAT (línea)</div></div></div><canvas id="ch-sem" height="85"></canvas></div></div></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR semanal promedio (horas)</div></div></div><canvas id="ch-sem-ttr" height="75"></canvas></div></div></div>
@@ -273,6 +310,25 @@ canvas{cursor:pointer}
 
   <!-- ICP -->
   <div id="pane-icp" class="pane">
+    <div class="row g-3 mb-3">
+      <div class="col-md-7">
+        <div class="cc h-100">
+          <div class="cc-hd">
+            <div>
+              <div class="cc-ttl"><i class="fas fa-trophy me-2" style="color:#F59E0B"></i>Top 5 clientes por volumen</div>
+              <div class="cc-sub">Casos totales con desglose por canal</div>
+            </div>
+          </div>
+          <canvas id="ch-icp-top5" height="160"></canvas>
+        </div>
+      </div>
+      <div class="col-md-5">
+        <div class="cc h-100">
+          <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-signal me-2" style="color:#7C3AED"></i>Canal principal por cliente</div><div class="cc-sub">Canal con más casos para cada ICP</div></div></div>
+          <div id="icp-canal-cards" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
     <div class="cc mb-3">
       <div class="cc-hd">
         <div>
@@ -569,13 +625,18 @@ function sCard(lbl,val,sub,cls,ico,ic,onclick){
 }
 
 function renderG(d){
-  const{tickets,csatRows,aiChats}=d;
-  const bm=grp(tickets,t=>t.mLbl),cm=grp(csatRows.filter(r=>r.f),r=>mLbl(r.f)),am=grp(aiChats,r=>r.mLbl);
-  const meses=MONTHS.filter(m=>bm[m]||cm[m]||am[m]);
-  const evo=meses.map(m=>{
-    const ts=bm[m]||[],cs=cm[m]||[],ai=am[m]||[];
+  const{tickets:allTix,csatRows,aiChats}=d;
+  const mode=_gMode,canal=_gCanal;
+  const tickets=canal==='all'?allTix:allTix.filter(t=>t.canal===canal);
+  const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
+  const bm=grp(tickets,pLbl);
+  const cm=grp(csatRows.filter(r=>r.f),r=>mode==='m'?mLbl(r.f):wLbl(r.f));
+  const am=grp(aiChats,r=>mode==='m'?r.mLbl:r.wLbl);
+  const periods=buildPeriods(bm,cm,am,mode);
+  const evo=periods.map(p=>{
+    const ts=bm[p]||[],cs=cm[p]||[],ai=am[p]||[];
     const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
-    return{m,tk:ts.length,cl:ts.filter(t=>closed(t.estado)).length,cs:cs.length?+avg(cs.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null,ai:ai.length};
+    return{p,tk:ts.length,cl:ts.filter(t=>closed(t.estado)).length,cs:cs.length?+avg(cs.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null,ai:ai.length};
   });
   const tot=tickets.length,cl=tickets.filter(t=>closed(t.estado)).length,pct=tot?Math.round(cl/tot*100):0;
   const ttA=tickets.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);
@@ -584,7 +645,6 @@ function renderG(d){
   const slaOk=ttA.filter(t=>t<=1).length;
   const slaPct=ttA.length?Math.round(slaOk/ttA.length*100):null;
   const slaCls=slaPct===null?'tr-n':slaPct>=85?'tr-up':slaPct>=70?'tr-n':'tr-dn';
-  const slaColor=slaPct===null?'#7C3AED':slaPct>=85?'#10B981':slaPct>=70?'#F59E0B':'#EF4444';
   document.getElementById('g-cards').innerHTML=
     sCard('Casos 2026',tot.toLocaleString(),'Total acumulado','tr-n','fas fa-ticket-alt','ic-v',"showDetail('all','Todos los casos')")+
     sCard('Resueltos',cl.toLocaleString(),`${pct}% del total`,pct>=70?'tr-up':'tr-dn','fas fa-check-circle','ic-g',"showDetail('resueltos','Casos resueltos')")+
@@ -592,12 +652,17 @@ function renderG(d){
     sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
     sCard('CSAT promedio',csA?`${csA}/5`:'—',csA?(csA>=4?'Sobre meta ↑':'Bajo meta ↓'):'',csA?(csA>=4?'tr-up':'tr-dn'):'tr-n','fas fa-star','ic-v',null)+
     sCard('Chats IA',aiChats.length.toLocaleString(),'Agente automático','tr-n','fas fa-robot','ic-r',"showDetail('ia','Chats IA Agent')");
-  const volChat=meses.map(m=>(bm[m]||[]).filter(t=>t.canal!=='Correo').length);
-  const volCorreo=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='Correo').length);
-  mk('ch-vol',{type:'bar',data:{labels:meses,datasets:[
-    {label:'Chat',data:volChat,backgroundColor:'rgba(124,58,237,.75)',borderRadius:4,stack:'s'},
-    {label:'Correo',data:volCorreo,backgroundColor:'rgba(79,70,229,.75)',borderRadius:4,stack:'s'},
-  ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Casos — ${m}`);}}});
+  // Evolución: stacked Chat/Correo solo cuando 'all', si no una sola serie
+  if(canal==='all'){
+    mk('ch-vol',{type:'bar',data:{labels:periods,datasets:[
+      {label:'Chat',data:periods.map(p=>(bm[p]||[]).filter(t=>t.canal!=='Correo').length),backgroundColor:'rgba(124,58,237,.75)',borderRadius:4,stack:'s'},
+      {label:'Correo',data:periods.map(p=>(bm[p]||[]).filter(t=>t.canal==='Correo').length),backgroundColor:'rgba(79,70,229,.75)',borderRadius:4,stack:'s'},
+    ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Casos — ${p}`);}}}  );
+  } else {
+    mk('ch-vol',{type:'bar',data:{labels:periods,datasets:[
+      {label:canal,data:periods.map(p=>(bm[p]||[]).length),backgroundColor:'rgba(124,58,237,.75)',borderRadius:4},
+    ]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Casos — ${p}`);}}}  );
+  }
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
   const tramoData=[
@@ -611,65 +676,71 @@ function renderG(d){
   const tramoRanges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,720]];
   mk('ch-ttr',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Casos',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',xMin:-0.5,xMax:3.5,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta <60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const[lo,hi]=tramoRanges[el[0].index];showDetailFiltered(tickets.filter(t=>t.ttr>lo&&t.ttr<=hi),`TMR: ${tramoLbls[el[0].index]}`);}})
   const cm2=evo.filter(e=>e.cs);
-  mk('ch-csat',{type:'line',data:{labels:cm2.map(e=>e.m),datasets:[{label:'CSAT',data:cm2.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
+  mk('ch-csat',{type:'line',data:{labels:cm2.map(e=>e.p),datasets:[{label:'CSAT',data:cm2.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.07)',fill:true,borderWidth:2,pointRadius:3,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
   const bc=grp(tickets,t=>t.canal);const cd=Object.entries(bc).map(([c,a])=>({c,n:a.length}));
   mk('ch-canal',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=cd[el[0].index].c;showDetailFiltered(tickets.filter(t=>t.canal===c),`Canal: ${c}`);}}}  );
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Tipo: ${tipo}`);}}}  );
-  const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
-  const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
-  mk('ch-agente',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Agente: ${ag}`);}}}  );
-  renderHeatmap(tickets,meses,'hm-agente-mes');
+  renderHeatmap(tickets,periods,'hm-agente-mes',mode);
+  renderICPTop5({tickets:allTix},'ch-g-top5','g-canal-cards');
 }
 
-function renderHeatmap(tickets,meses,containerId){
+function renderHeatmap(tickets,periods,containerId,mode='m'){
   const resolved=tickets.filter(t=>t.resolvedBy&&t.ttr>0&&t.ttr<720);
+  const pField=mode==='m'?'mLbl':'wLbl';
   const agentes=[...new Set(resolved.map(t=>t.resolvedBy))].sort();
-  if(!agentes.length||!meses.length){document.getElementById(containerId).innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';return;}
-  const cell=(v,agente,mes)=>{
+  if(!agentes.length||!periods.length){document.getElementById(containerId).innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';return;}
+  const cell=(v,agente,p)=>{
     if(v===null)return`<td style="background:#F9FAFB;color:#D1D5DB;min-width:52px">—</td>`;
     const bg=v<=1?`rgba(16,185,129,${Math.min(0.15+v*0.5,0.85)})`:v<=2?`rgba(245,158,11,${Math.min(0.15+(v-1)*0.5,0.85)})`:`rgba(239,68,68,${Math.min(0.15+(v-2)*0.35,0.85)})`;
     const color=v<=1?'#065F46':v<=2?'#92400E':'#991B1B';
-    const click=agente&&mes?`onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(agente)}')&&t.mLbl==='${mes}'),decodeURIComponent('${encodeURIComponent(agente+' — '+mes)}')),event.stopPropagation()"`:
+    const pf=encodeURIComponent(pField);
+    const click=agente&&p?`onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(agente)}')&&t[decodeURIComponent('${pf}')]==='${p}'),decodeURIComponent('${encodeURIComponent(agente+' — '+p)}')),event.stopPropagation()"`:
       agente?`onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(agente)}')),decodeURIComponent('${encodeURIComponent('Promedio: '+agente)}')),event.stopPropagation()"`:''
     return`<td style="background:${bg};color:${color};cursor:${click?'pointer':'default'}" ${click}>${v.toFixed(1)}h</td>`;
   };
   const rows=agentes.map(a=>{
-    const cells=meses.map(m=>{
-      const ts=resolved.filter(t=>t.resolvedBy===a&&t.mLbl===m);
-      return{v:ts.length?+avg(ts.map(t=>t.ttr)).toFixed(2):null,a,m};
+    const cells=periods.map(p=>{
+      const ts=resolved.filter(t=>t.resolvedBy===a&&t[pField]===p);
+      return{v:ts.length?+avg(ts.map(t=>t.ttr)).toFixed(2):null,a,p};
     });
-    const total=resolved.filter(t=>t.resolvedBy===a);
-    const totalAvg=total.length?+avg(total.map(t=>t.ttr)).toFixed(2):null;
-    return`<tr><td class="hm-agent" style="cursor:pointer" onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(a)}')),decodeURIComponent('${encodeURIComponent('Resuelto por: '+a)}')),event.stopPropagation()">${a.split(' ').slice(0,2).join(' ')}</td>${cells.map(c=>cell(c.v,c.a,c.m)).join('')}${cell(totalAvg,a,null)}</tr>`;
+    const totalAvg=resolved.filter(t=>t.resolvedBy===a).map(t=>t.ttr);
+    const avg2=totalAvg.length?+avg(totalAvg).toFixed(2):null;
+    return`<tr><td class="hm-agent" style="cursor:pointer" onclick="showDetailFiltered(window._dashData.tickets.filter(t=>t.resolvedBy===decodeURIComponent('${encodeURIComponent(a)}')),decodeURIComponent('${encodeURIComponent('Resuelto por: '+a)}')),event.stopPropagation()">${a.split(' ').slice(0,2).join(' ')}</td>${cells.map(c=>cell(c.v,c.a,c.p)).join('')}${cell(avg2,a,null)}</tr>`;
   });
   document.getElementById(containerId).innerHTML=`
     <table class="hm-table">
-      <thead><tr><th>Agente</th>${meses.map(m=>`<th>${m}</th>`).join('')}<th>Promedio</th></tr></thead>
+      <thead><tr><th>Equipo</th>${periods.map(p=>`<th>${p}</th>`).join('')}<th>Promedio</th></tr></thead>
       <tbody>${rows.join('')}</tbody>
     </table>`;
 }
 
 function renderO(d){
-  const{tickets,csatRows,aiChats}=d;
-  const bs=grp(tickets,t=>t.wLbl),cs=grp(csatRows.filter(r=>r.f),r=>wLbl(r.f));
-  const sems=[...new Set([...Object.keys(bs),...Object.keys(cs)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
-  const evo=sems.map(s=>{const ts=bs[s]||[],csr=cs[s]||[];const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{s,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null};});
+  const{tickets,csatRows}=d;
+  const mode=_oMode;
+  const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
+  const csLbl=r=>mode==='m'?mLbl(r.f):wLbl(r.f);
+  const bs=grp(tickets,pLbl),cs=grp(csatRows.filter(r=>r.f),csLbl);
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>bs[p]||cs[p])
+    :[...new Set([...Object.keys(bs),...Object.keys(cs)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const evo=periods.map(p=>{const ts=bs[p]||[],csr=cs[p]||[];const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{p,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null};});
   const ult=evo[evo.length-1]||{},ab=tickets.filter(t=>!closed(t.estado)).length;
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);const slaOk=tt.filter(t=>t<=1).length;const slaPct=tt.length?Math.round(slaOk/tt.length*100):null;return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null,slaPct};}).sort((a,b)=>b.tot-a.tot);
+  const periodoLbl=mode==='m'?'mes':'semana';
   document.getElementById('o-cards').innerHTML=
-    sCard('Casos esta semana',ult.tk??'—','Semana actual','tr-n','fas fa-inbox','ic-v',"showDetail('semana','Casos esta semana')")+
+    sCard(`Casos este ${periodoLbl}`,ult.tk??'—',`${mode==='m'?'Mes':'Semana'} actual`,'tr-n','fas fa-inbox','ic-v',`showDetail('${mode==='m'?'mes':'semana'}','Casos este ${periodoLbl}')`)+
     sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Casos abiertos')")+
-    sCard('CSAT esta semana',ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
-    sCard('TMR esta semana',ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
+    sCard(`CSAT este ${periodoLbl}`,ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
+    sCard(`TMR este ${periodoLbl}`,ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
     sCard('Agentes',ags.length,'Con casos asignados','tr-n','fas fa-user-tie','ic-r',null);
-  mk('ch-sem',{type:'bar',data:{labels:sems,datasets:[
+  mk('ch-sem',{type:'bar',data:{labels:periods,datasets:[
     {type:'bar',label:'Casos',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
     {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
-  ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}},onClick:(e,el)=>{if(!el.length)return;const s=sems[el[0].index];showDetailFiltered(tickets.filter(t=>t.wLbl===s),`Semana: ${s}`);}}}  );
+  ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`${mode==='m'?'Mes':'Semana'}: ${p}`);}}}  );
   const ts2=evo.filter(e=>e.ttr);
-  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.s),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const s=ts2[el[0].index].s;showDetailFiltered(tickets.filter(t=>t.wLbl===s),`Semana TMR: ${s}`);}}}  );
+  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.p),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=ts2[el[0].index].p;showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`TMR: ${p}`);}}}  );
   document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>4?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>1?'#DC2626':a.ttr&&a.ttr>0.75?'#D97706':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td style="font-weight:700;color:${a.slaPct===null?'#9CA3AF':a.slaPct>=85?'#059669':a.slaPct>=70?'#D97706':'#DC2626'}">${a.slaPct!==null?a.slaPct+'%':'—'}</td><td><span class="bs ${a.op>4?'bs-op':'bs-cl'}">${a.op>4?'Carga alta':'Normal'}</span></td></tr>`).join('');
   const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
   const now=new Date();
@@ -716,7 +787,9 @@ function canalTblRows(tickets,tbId){
 
 // ── Render Canal Chat ─────────────────────
 function renderCh(d){
+  const mode=_chMode;
   const tickets=d.tickets.filter(t=>t.src==='chat');
+  const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
   canalKpis(tickets,'ch-cards','Chat');
   // SLA por subcanal
   const webT=tickets.filter(t=>t.canal==='Web'&&t.ttr>0&&t.ttr<720);
@@ -726,24 +799,26 @@ function renderCh(d){
   document.getElementById('ch-cards').innerHTML+=
     sCard('SLA Web',webSla!==null?`${webSla}%`:'—',webSla>=85?'Sobre meta ↑':'Bajo meta ↓',webSla>=85?'tr-up':'tr-dn','fas fa-globe','ic-v')+
     sCard('SLA WhatsApp',wapSla!==null?`${wapSla}%`:'—',wapSla>=85?'Sobre meta ↑':'Bajo meta ↓',wapSla>=85?'tr-up':'tr-dn','fab fa-whatsapp','ic-g');
-  const bm=grp(tickets,t=>t.mLbl);
-  const meses=MONTHS.filter(m=>bm[m]);
-  const web=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='Web').length);
-  const wap=meses.map(m=>(bm[m]||[]).filter(t=>t.canal==='WhatsApp').length);
-  const tot=meses.map(m=>(bm[m]||[]).length);
-  mk('ch-ch-vol',{type:'bar',data:{labels:meses,datasets:[
+  const bm=grp(tickets,pLbl);
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>bm[p])
+    :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const web=periods.map(p=>(bm[p]||[]).filter(t=>t.canal==='Web').length);
+  const wap=periods.map(p=>(bm[p]||[]).filter(t=>t.canal==='WhatsApp').length);
+  const tot=periods.map(p=>(bm[p]||[]).length);
+  mk('ch-ch-vol',{type:'bar',data:{labels:periods,datasets:[
     {label:'Total',data:tot,backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}
-  ]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Chat — ${m}`);}}}  );
+  ]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Chat — ${p}`);}}}  );
   const chSubLabels=['Web','WhatsApp'];
-  mk('ch-ch-split',{type:'bar',data:{labels:meses,datasets:[
+  mk('ch-ch-split',{type:'bar',data:{labels:periods,datasets:[
     {label:'Web',data:web,backgroundColor:'rgba(79,70,229,.7)',borderRadius:4},
     {label:'WhatsApp',data:wap,backgroundColor:'rgba(16,185,129,.7)',borderRadius:4}
-  ]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];const sub=chSubLabels[el[0].datasetIndex];showDetailFiltered(tickets.filter(t=>t.mLbl===m&&t.canal===sub),`${sub} — ${m}`);}}}  );
+  ]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];const sub=chSubLabels[el[0].datasetIndex];showDetailFiltered(tickets.filter(t=>pLbl(t)===p&&t.canal===sub),`${sub} — ${p}`);}}}  );
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Chat — Tipo: ${tipo}`);}}}  );
-  const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-ch-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
+  const tm=periods.map(p=>{const tt=(bm[p]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
+  mk('ch-ch-ttr',{type:'bar',data:{labels:periods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
   mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Chat — Agente: ${ag}`);}}}  );
@@ -752,13 +827,17 @@ function renderCh(d){
 
 // ── Render Canal Correo ───────────────────
 function renderCo(d){
+  const mode=_coMode;
   const tickets=d.tickets.filter(t=>t.src==='correo');
+  const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
   canalKpis(tickets,'co-cards','Correo');
-  const bm=grp(tickets,t=>t.mLbl);
-  const meses=MONTHS.filter(m=>bm[m]);
-  mk('ch-co-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Casos',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(tickets.filter(t=>t.mLbl===m),`Correo — ${m}`);}}}  );
-  const tm=meses.map(m=>{const tt=(bm[m]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-co-ttr',{type:'bar',data:{labels:meses,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
+  const bm=grp(tickets,pLbl);
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>bm[p])
+    :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  mk('ch-co-vol',{type:'bar',data:{labels:periods,datasets:[{label:'Casos',data:periods.map(p=>(bm[p]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Correo — ${p}`);}}}  );
+  const tm=periods.map(p=>{const tt=(bm[p]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
+  mk('ch-co-ttr',{type:'bar',data:{labels:periods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Correo — Tipo: ${tipo}`);}}}  );
@@ -770,16 +849,21 @@ function renderCo(d){
 
 // ── Render Agente IA ──────────────────────
 function renderIA(d){
+  const mode=_iaMode;
   const chats=d.aiChats;
   const tot=chats.length;
-  const bm=grp(chats,r=>r.mLbl);
-  const meses=MONTHS.filter(m=>bm[m]);
+  const pLbl=r=>mode==='m'?r.mLbl:r.wLbl;
+  const bm=grp(chats,pLbl);
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>bm[p])
+    :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const periodoLbl=mode==='m'?'Meses activos':'Semanas activas';
+  const promedioLbl=mode==='m'?'Promedio mensual':'Promedio semanal';
   document.getElementById('ia-cards').innerHTML=
     sCard('Total chats IA',tot.toLocaleString(),'Acumulado 2026','tr-n','fas fa-robot','ic-r')+
-    sCard('Meses activos',meses.length.toLocaleString(),'Con actividad','tr-n','fas fa-calendar','ic-v')+
-    sCard('Promedio mensual',meses.length?Math.round(tot/meses.length).toLocaleString():'—','Chats por mes','tr-n','fas fa-chart-bar','ic-t');
-  mk('ch-ia-vol',{type:'bar',data:{labels:meses,datasets:[{label:'Chats',data:meses.map(m=>(bm[m]||[]).length),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
-  // Categoría desde aiChats — necesita campo 'cat'
+    sCard(periodoLbl,periods.length.toLocaleString(),'Con actividad','tr-n','fas fa-calendar','ic-v')+
+    sCard(promedioLbl,periods.length?Math.round(tot/periods.length).toLocaleString():'—',`Chats por ${mode==='m'?'mes':'semana'}`,'tr-n','fas fa-chart-bar','ic-t');
+  mk('ch-ia-vol',{type:'bar',data:{labels:periods,datasets:[{label:'Chats',data:periods.map(p=>(bm[p]||[]).length),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}}}});
   const cats=grp(chats.filter(r=>r.cat),r=>r.cat);
   const cd=Object.entries(cats).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,8);
   if(cd.length){
@@ -793,7 +877,10 @@ function renderIA(d){
 }
 
 function renderSLA(d){
-  const{tickets,csatRows}=d;
+  const{tickets:allTix,csatRows}=d;
+  const mode=_slaMode,canal=_slaCanal;
+  const tickets=canal==='all'?allTix:allTix.filter(t=>t.canal===canal);
+  const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
   const withTTR=tickets.filter(t=>t.ttr>0&&t.ttr<720);
   const breaches=withTTR.filter(t=>t.ttr>1);
   const ok=withTTR.filter(t=>t.ttr<=1);
@@ -803,7 +890,6 @@ function renderSLA(d){
     sCard('Breaches',breaches.length.toLocaleString(),'Casos >60 min','tr-dn','fas fa-times-circle','ic-r')+
     sCard('TMR promedio (ok)',ok.length?`${+avg(ok.map(t=>t.ttr)).toFixed(1)}h`:'—','Casos dentro de meta','tr-up','fas fa-check','ic-g')+
     sCard('TMR promedio (breach)',breaches.length?`${+avg(breaches.map(t=>t.ttr)).toFixed(1)}h`:'—','Casos fuera de meta','tr-dn','fas fa-clock','ic-r');
-  // Histograma tramos
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
   const tramoData=[
@@ -816,31 +902,27 @@ function renderSLA(d){
   ];
   const slaRanges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,720]];
   mk('ch-sla-hist',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Casos',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const[lo,hi]=slaRanges[el[0].index];showDetailFiltered(withTTR.filter(t=>t.ttr>lo&&t.ttr<=hi),`TMR: ${tramoLbls[el[0].index]}`);}}}  );
-  // Tendencia SLA mensual
-  const bm=grp(withTTR,t=>t.mLbl);
-  const meses=MONTHS.filter(m=>bm[m]);
-  const slaTrend=meses.map(m=>{const ts=bm[m]||[];return ts.length?Math.round(ts.filter(t=>t.ttr<=1).length/ts.length*100):null;});
-  mk('ch-sla-trend',{type:'line',data:{labels:meses,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const m=meses[el[0].index];showDetailFiltered(withTTR.filter(t=>t.mLbl===m),`SLA — ${m}`);}})
-  // Breaches por canal
+  const bm=grp(withTTR,pLbl);
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>bm[p])
+    :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const slaTrend=periods.map(p=>{const ts=bm[p]||[];return ts.length?Math.round(ts.filter(t=>t.ttr<=1).length/ts.length*100):null;});
+  mk('ch-sla-trend',{type:'line',data:{labels:periods,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(withTTR.filter(t=>pLbl(t)===p),`SLA — ${p}`);}})
   const bc=grp(breaches,t=>t.canal);
   const bcd=Object.entries(bc).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n);
   mk('ch-sla-canal',{type:'doughnut',data:{labels:bcd.map(d=>d.c),datasets:[{data:bcd.map(d=>d.n),backgroundColor:['#EF4444','#D97706','#7C3AED','#4F46E5'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=bcd[el[0].index].c;showDetailFiltered(breaches.filter(t=>t.canal===c),`Breaches — Canal: ${c}`);}}}  );
-  // Breaches por tipo
   const bt=grp(breaches.filter(t=>t.tipo),t=>t.tipo);
   const btd=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-sla-tipo',{type:'bar',data:{labels:btd.map(d=>d.t),datasets:[{label:'Breaches',data:btd.map(d=>d.n),backgroundColor:'rgba(239,68,68,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=btd[el[0].index].t;showDetailFiltered(breaches.filter(t=>t.tipo===tipo),`Breaches — Tipo: ${tipo}`);}}}  );
-  // CSAT vs TTR tramos
   const csatByTramo=tramoLbls.map((l,i)=>{
     const ranges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,999]];
-    const [lo,hi]=ranges[i];
+    const[lo,hi]=ranges[i];
     const tks=withTTR.filter(t=>t.ttr>lo&&t.ttr<=hi).map(t=>t.tk);
     const tkSet=new Set(tks);
     const cs=csatRows.filter(r=>tkSet.size>0).map(r=>r.v);
     return cs.length?+avg(cs).toFixed(2):null;
   });
   mk('ch-sla-csat',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'CSAT prom',data:csatByTramo,backgroundColor:tramoCols.map(c=>c+'99'),borderRadius:4,borderColor:tramoCols,borderWidth:1}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:1,max:5}},plugins:{legend:{display:false}}}});
-  // Tabla breaches
-  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
   document.getElementById('tbl-breach').innerHTML=[...breaches].sort((a,b)=>b.ttr-a.ttr).slice(0,50).map(t=>`
     <tr>
       <td><code style="font-size:10px;color:#EF4444">${String(t.tk).slice(0,14)}</code></td>
@@ -879,6 +961,7 @@ function showDetail(filter,label){
   else if(filter==='abiertos')  rows=tickets.filter(t=>!closed(t.estado));
   else if(filter==='con-ttr')   rows=tickets.filter(t=>t.ttr>0&&t.ttr<720);
   else if(filter==='semana')    rows=tickets.filter(t=>t.wLbl===sem);
+  else if(filter==='mes')       rows=tickets.filter(t=>t.mLbl===mLbl(new Date()));
   else if(filter==='breach')    rows=tickets.filter(t=>t.ttr>1&&t.ttr<720);
   else if(filter==='ia'){
     detRows=aiChats.map(r=>({tk:'—',agente:'IA Agent',canal:'Chat IA',tipo:'—',estado:'—',fc:r.f,fci:null,ttr:null}));
@@ -957,7 +1040,7 @@ function setView(v){
   ['ch','co','ia','sla','glos','icp'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente'};
+  const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
@@ -1003,6 +1086,35 @@ function saveToken(){
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
 
 // ── Init ─────────────────────────────────
+
+// ── Shared mode/canal state ───────────────────────────────
+let _gMode='m',  _gCanal='all';
+let _chMode='m';
+let _coMode='m';
+let _iaMode='m';
+let _slaMode='m', _slaCanal='all';
+let _oMode='w';
+
+function syncModeBtn(prefix,mode){
+  ['m','w'].forEach(v=>{const el=document.getElementById(`${prefix}-btn-${v}`);if(el)el.className='bv bv-g'+(mode===v?' active':'');});
+}
+function syncCanalBtn(prefix,canal){
+  ['all','Web','WhatsApp','Correo'].forEach(c=>{const el=document.getElementById(`${prefix}-canal-${c}`);if(el)el.className='bv bv-g'+(canal===c?' active':'');});
+}
+function gSetMode(m){_gMode=m;syncModeBtn('g',m);if(window._dashData)renderG(window._dashData);}
+function gSetCanal(c){_gCanal=c;syncCanalBtn('g',c);if(window._dashData)renderG(window._dashData);}
+function chSetMode(m){_chMode=m;syncModeBtn('ch',m);if(window._dashData)renderCh(window._dashData);}
+function coSetMode(m){_coMode=m;syncModeBtn('co',m);if(window._dashData)renderCo(window._dashData);}
+function iaSetMode(m){_iaMode=m;syncModeBtn('ia',m);if(window._dashData)renderIA(window._dashData);}
+function slaSetMode(m){_slaMode=m;syncModeBtn('sla',m);if(window._dashData)renderSLA(window._dashData);}
+function slaSetCanal(c){_slaCanal=c;syncCanalBtn('sla',c);if(window._dashData)renderSLA(window._dashData);}
+function oSetMode(m){_oMode=m;syncModeBtn('o',m);if(window._dashData)renderO(window._dashData);}
+
+// Helper: sorted period array from tickets+csat+aiChats for a given mode
+function buildPeriods(bm,cm,am,mode){
+  if(mode==='m') return MONTHS.filter(p=>bm[p]||cm[p]||am[p]);
+  return[...new Set([...Object.keys(bm),...Object.keys(cm),...Object.keys(am)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+}
 
 // ── ICP Table ─────────────────────────────────────────────
 let _icpMode='m'; // 'm'=mensual, 'w'=semanal
@@ -1113,6 +1225,7 @@ function renderICP(d){
 
   wrap.innerHTML=html;
   renderICPTmr(d);
+  renderICPTop5(d);
 }
 
 function renderICPTmr(d){
@@ -1208,6 +1321,57 @@ function renderICPTmr(d){
   else{html+=`<td style="padding:7px 12px;font-size:12px;text-align:center;background:#4C1D95;color:#fff;font-weight:700">${grandAvg.toFixed(1)}h</td>`;}
   html+='</tr></tbody></table>';
   wrap.innerHTML=html;
+}
+
+function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
+  const canvasEl=document.getElementById(canvasId);
+  const cardsEl=document.getElementById(cardsId);
+  if(!canvasEl||!cardsEl)return;
+
+  const tickets=d.tickets.filter(t=>t.cliente);
+  // Agrupar por ICP y contar total
+  const byICP={};
+  tickets.forEach(t=>{
+    const icp=ICP_ORDER.includes(t.cliente)?t.cliente:'Otro';
+    if(!byICP[icp])byICP[icp]={total:0,Web:0,WhatsApp:0,Correo:0};
+    byICP[icp].total++;
+    if(t.canal==='Web')byICP[icp].Web++;
+    else if(t.canal==='WhatsApp')byICP[icp].WhatsApp++;
+    else if(t.canal==='Correo')byICP[icp].Correo++;
+  });
+
+  // Top 5 por total
+  const top5=Object.entries(byICP).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+  const labels=top5.map(([icp])=>icp);
+  const webData=top5.map(([,v])=>v.Web);
+  const wapData=top5.map(([,v])=>v.WhatsApp);
+  const coData=top5.map(([,v])=>v.Correo);
+
+  mk(canvasId,{type:'bar',data:{labels,datasets:[
+    {label:'Chat Web',data:webData,backgroundColor:'rgba(124,58,237,.8)',borderRadius:4,stack:'s'},
+    {label:'WhatsApp',data:wapData,backgroundColor:'rgba(16,185,129,.8)',borderRadius:4,stack:'s'},
+    {label:'Correo',data:coData,backgroundColor:'rgba(79,70,229,.8)',borderRadius:4,stack:'s'},
+  ]},options:{...GO,indexAxis:'y',scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},onClick:(e,el)=>{if(!el.length)return;const icp=labels[el[0].index];showDetailFiltered(tickets.filter(t=>(ICP_ORDER.includes(t.cliente)?t.cliente:'Otro')===icp),`ICP: ${icp}`);}}});
+
+  // Canal principal por cliente
+  const canalIcon={Web:'fas fa-globe',WhatsApp:'fab fa-whatsapp',Correo:'fas fa-envelope'};
+  const canalColor={Web:'#7C3AED',WhatsApp:'#10B981',Correo:'#4F46E5'};
+  cardsEl.innerHTML=top5.map(([icp,v],i)=>{
+    const mainCanal=Object.entries({Web:v.Web,WhatsApp:v.WhatsApp,Correo:v.Correo}).sort((a,b)=>b[1]-a[1])[0];
+    const [canal,cnt]=mainCanal;
+    const pct=v.total?Math.round(cnt/v.total*100):0;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F3F4F6;${i===top5.length-1?'border-bottom:none':''}">
+      <div style="font-size:11px;font-weight:700;color:#6B7280;width:16px;text-align:center">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13px;color:#1F2937">${icp}</div>
+        <div style="font-size:11px;color:#9CA3AF">${v.total.toLocaleString()} casos</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;font-weight:700;color:${canalColor[canal]}"><i class="${canalIcon[canal]} me-1"></i>${canal}</div>
+        <div style="font-size:11px;color:#9CA3AF">${pct}% del total</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 window.addEventListener('load',async()=>{
