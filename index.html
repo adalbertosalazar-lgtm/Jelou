@@ -459,7 +459,7 @@ function process(raw){
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
-  const csatRows=csatOp.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({v:csat(r["Satisfacion"]),f:parseD(r["Fecha de creación"])})).filter(r=>r.v!==null);
+  const csatRows=csatOp.map(r=>({v:csat(r["Satisfacion"]),f:parseD(r["Fecha de creación"])})).filter(r=>r.v!==null);
   const aiChats=aiChatsRaw.filter(r=>is26(parseD(r["Fecha de creación"]))).map(r=>({f:parseD(r["Fecha de creación"]),mLbl:mLbl(parseD(r["Fecha de creación"])),wLbl:wLbl(parseD(r["Fecha de creación"])),cat:r["Categoria"]||"",tipo:r["Tipo de gestión"]||""}));
   return{tickets,csatRows,aiChats};
 }
