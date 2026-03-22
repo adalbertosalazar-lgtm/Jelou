@@ -139,6 +139,7 @@ canvas{cursor:pointer}
     <div class="nav-lbl" style="margin-top:10px">Análisis</div>
     <div class="ni" id="nav-sla" onclick="setView('sla')"><i class="fas fa-exclamation-triangle"></i>Análisis SLA</div>
   </nav>
+  <div class="ni" id="nav-icp" onclick="setView('icp')"><i class="fas fa-users"></i>ICP</div>
   <div class="ni" id="nav-glos" onclick="setView('glos')" style="margin:8px 12px;border-radius:8px"><i class="fas fa-book"></i>Glosario</div>
   <div class="sb-foot">
     <div class="upd" id="last-upd">Sin datos cargados</div>
@@ -269,6 +270,24 @@ canvas{cursor:pointer}
     <div class="row g-3 mb-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-users me-2" style="color:#7C3AED"></i>Carga por agente</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Agente</th><th>Total</th><th>Abiertos</th><th>TMR prom (h)</th><th>SLA <60min</th><th>Estado</th></tr></thead><tbody id="tbl-ag"></tbody></table></div></div></div></div>
     <div class="row g-3"><div class="col-12"><div class="tc"><div class="tc-hd"><h6><i class="fas fa-ticket-alt me-2" style="color:#7C3AED"></i>Casos recientes</h6></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>Caso</th><th>Tipo</th><th>Canal</th><th>Agente</th><th>Estado</th><th>Fecha</th><th>Transcurrido</th></tr></thead><tbody id="tbl-tk"></tbody></table></div></div></div></div>
   </div>
+
+  <!-- ICP -->
+  <div id="pane-icp" class="pane">
+    <div class="cc mb-3">
+      <div class="cc-hd">
+        <div>
+          <div class="cc-ttl"><i class="fas fa-users me-2" style="color:#7C3AED"></i>Casos por ICP</div>
+          <div class="cc-sub">Cantidad de casos por cliente — 2026</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="icp-btn-m" class="bv bv-g active" onclick="icpSetMode('m')">Mensual</button>
+          <button id="icp-btn-w" class="bv bv-g" onclick="icpSetMode('w')">Semanal</button>
+        </div>
+      </div>
+      <div id="icp-table-wrap" style="overflow-x:auto;margin-top:12px"></div>
+    </div>
+  </div>
+
 
   <!-- Glosario -->
   <div id="pane-glos" class="pane">
@@ -455,7 +474,7 @@ function process(raw){
     const fc=parseD(row["Fecha creacion"]||row["Fecha de creación"]);
     const fci=parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
     if(!is26(fc))return;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):""};
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",cliente:(row["Cliente"]||"").trim()};
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
@@ -903,22 +922,23 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d','ch','co','ia','sla','glos'].forEach(x=>{
+  ['g','o','d','ch','co','ia','sla','glos','icp'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
     document.getElementById(`btn-${x}`).className=`bv bv-${x}`+((v===x)?' active':'');
   });
-  ['ch','co','ia','sla','glos'].forEach(x=>{
+  ['ch','co','ia','sla','glos','icp'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario'};
+  const titles={g:'Vista gerencial — 2026',o:'Vista operacional — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
   if(v==='ia'&&window._dashData) renderIA(window._dashData);
   if(v==='sla'&&window._dashData) renderSLA(window._dashData);
+  if(v==='icp'&&window._dashData) renderICP(window._dashData);
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
@@ -958,6 +978,107 @@ function saveToken(){
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeAdmin();});
 
 // ── Init ─────────────────────────────────
+
+// ── ICP Table ─────────────────────────────────────────────
+let _icpMode='m'; // 'm'=mensual, 'w'=semanal
+const ICP_ORDER=['Enterprise','Partner','Pocket','SMB','Self-Service','Otro'];
+
+function icpSetMode(mode){
+  _icpMode=mode;
+  document.getElementById('icp-btn-m').className='bv bv-g'+(mode==='m'?' active':'');
+  document.getElementById('icp-btn-w').className='bv bv-g'+(mode==='w'?' active':'');
+  if(window._dashData) renderICP(window._dashData);
+}
+
+function renderICP(d){
+  const tickets=d.tickets;
+  const wrap=document.getElementById('icp-table-wrap');
+  if(!wrap)return;
+  const mode=_icpMode;
+
+  // Build period labels from data
+  const allPeriods=[...new Set(tickets.map(t=>mode==='m'?t.mLbl:t.wLbl))].filter(Boolean);
+  const periods=mode==='m'
+    ? MONTHS.filter(m=>allPeriods.includes(m))
+    : allPeriods.sort((a,b)=>{
+        const n=x=>parseInt(x.replace('S',''));
+        return n(a)-n(b);
+      });
+
+  // Build counts: icp -> period -> count
+  const counts={};
+  ICP_ORDER.forEach(icp=>{ counts[icp]={}; periods.forEach(p=>{ counts[icp][p]=0; }); });
+  const otherKey='Otro';
+  tickets.forEach(t=>{
+    const p=mode==='m'?t.mLbl:t.wLbl;
+    if(!p||!periods.includes(p))return;
+    const icp=ICP_ORDER.includes(t.cliente)?t.cliente:otherKey;
+    counts[icp][p]=(counts[icp][p]||0)+1;
+  });
+
+  // Filter out ICPs with zero total
+  const activeICPs=ICP_ORDER.filter(icp=>periods.some(p=>counts[icp][p]>0));
+
+  // Column totals
+  const colTotals={};
+  periods.forEach(p=>{ colTotals[p]=activeICPs.reduce((s,icp)=>s+(counts[icp][p]||0),0); });
+  const grandTotal=activeICPs.reduce((s,icp)=>periods.reduce((s2,p)=>s2+(counts[icp][p]||0),s),0);
+
+  // Max value for heatmap coloring
+  const allVals=activeICPs.flatMap(icp=>periods.map(p=>counts[icp][p]||0)).filter(v=>v>0);
+  const maxVal=allVals.length?Math.max(...allVals):1;
+
+  function heatBg(v){
+    if(!v)return'';
+    const t=v/maxVal;
+    if(t>=0.8)return'background:#6D28D9;color:#fff';
+    if(t>=0.6)return'background:#7C3AED;color:#fff';
+    if(t>=0.4)return'background:#8B5CF6;color:#fff';
+    if(t>=0.2)return'background:#C4B5FD;color:#1F2937';
+    return'background:#EDE9FE;color:#1F2937';
+  }
+
+  const thStyle='padding:8px 12px;background:#F3F4F6;font-weight:600;font-size:12px;color:#374151;white-space:nowrap;border-bottom:2px solid #E5E7EB;position:sticky;top:0;z-index:2';
+  const firstThStyle='padding:8px 12px;background:#F3F4F6;font-weight:600;font-size:12px;color:#374151;border-bottom:2px solid #E5E7EB;position:sticky;left:0;top:0;z-index:3;min-width:120px';
+  const tdBase='padding:7px 12px;font-size:12px;text-align:center;border-bottom:1px solid #F3F4F6;white-space:nowrap';
+  const tdLabel='padding:7px 12px;font-size:12px;font-weight:600;color:#1F2937;border-bottom:1px solid #F3F4F6;position:sticky;left:0;background:#fff;white-space:nowrap;z-index:1';
+
+  let html='<table style="border-collapse:collapse;width:100%;min-width:600px">';
+  // Header
+  html+='<thead><tr>';
+  html+=`<th style="${firstThStyle}">ICP / Cliente</th>`;
+  periods.forEach(p=>{ html+=`<th style="${thStyle}">${p}</th>`; });
+  html+=`<th style="${thStyle};background:#EDE9FE;color:#4C1D95">Total</th>`;
+  html+='</tr></thead><tbody>';
+
+  // Rows
+  activeICPs.forEach((icp,ri)=>{
+    const rowTotal=periods.reduce((s,p)=>s+(counts[icp][p]||0),0);
+    const bg=ri%2===0?'#fff':'#FAFAFA';
+    html+=`<tr>`;
+    html+=`<td style="${tdLabel};background:${bg}">${icp}</td>`;
+    periods.forEach(p=>{
+      const v=counts[icp][p]||0;
+      const style=v?`${tdBase};${heatBg(v)}`:`${tdBase};color:#D1D5DB`;
+      html+=`<td style="${style}">${v||'—'}</td>`;
+    });
+    html+=`<td style="${tdBase};background:#EDE9FE;font-weight:700;color:#4C1D95">${rowTotal}</td>`;
+    html+='</tr>';
+  });
+
+  // Totals row
+  html+='<tr style="border-top:2px solid #E5E7EB">';
+  html+=`<td style="${tdLabel};background:#F3F4F6;font-weight:700">Total</td>`;
+  periods.forEach(p=>{
+    html+=`<td style="${tdBase};background:#F3F4F6;font-weight:700;color:#374151">${colTotals[p]||'—'}</td>`;
+  });
+  html+=`<td style="${tdBase};background:#4C1D95;color:#fff;font-weight:700">${grandTotal}</td>`;
+  html+='</tr>';
+  html+='</tbody></table>';
+
+  wrap.innerHTML=html;
+}
+
 window.addEventListener('load',async()=>{
   showLoading(true);
   // 1. Intentar GitHub (compartido con todos)
