@@ -467,14 +467,24 @@ function process(raw){
   const chat=raw["Canal Chat.xlsx"]||[],correo=raw["Canal Correo.xlsx"]||[];
   const csatOp=raw["CSAT Operadores.xlsx"]||[],aiChatsRaw=raw["Chats AI Agent.xlsx"]||[];
   const tmap={};
+  const MARCH1=new Date("2026-03-01");
   const add=(row,src)=>{
     const tk=String(row["Ticket"]||row["Numero de registro"]||"").trim();
     if(!tk)return;
     if((row["Estado"]||"").trim()==="Desestimado")return;
     const fc=parseD(row["Fecha creacion"]||row["Fecha de creación"]);
-    const fci=parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
     if(!is26(fc))return;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado:row["Estado"]||"",canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr:(fc&&fci&&fci>fc)?(fci-fc)/3600000:null,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",cliente:(row["Cliente"]||"").trim()};
+    const rawEstado=(row["Estado"]||"").trim();
+    const isLegacy=fc&&fc<MARCH1;
+    // Legacy (pre-marzo): siempre resuelto, TMR desde última actualización
+    // Recientes (desde marzo): TMR solo si está Resuelto, resto como abierto
+    const fci=isLegacy
+      ?parseD(row["Fecha actualizacion"]||row["Fecha de actualización"]||row["Fecha cerrado"])
+      :parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]||row["Fecha de actualización"]);
+    const estado=isLegacy?"Resuelto":rawEstado;
+    const isResolved=isLegacy||(rawEstado==="Resuelto");
+    const ttr=isResolved&&fc&&fci&&fci>fc?(fci-fc)/3600000:null;
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",cliente:(row["Cliente"]||"").trim()};
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
