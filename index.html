@@ -286,6 +286,21 @@ canvas{cursor:pointer}
       </div>
       <div id="icp-table-wrap" style="overflow-x:auto;margin-top:12px"></div>
     </div>
+    <div class="cc">
+      <div class="cc-hd">
+        <div>
+          <div class="cc-ttl"><i class="fas fa-clock me-2" style="color:#7C3AED"></i>TMR por ICP (horas)</div>
+          <div class="cc-sub">Promedio tiempo de resolución por cliente — escala: verde &lt;1h · amarillo 1-2h · rojo &gt;2h</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button id="icp-tmr-all" class="bv bv-g active" onclick="icpSetCanal('all')">Todos</button>
+          <button id="icp-tmr-Web" class="bv bv-g" onclick="icpSetCanal('Web')">Chat Web</button>
+          <button id="icp-tmr-WhatsApp" class="bv bv-g" onclick="icpSetCanal('WhatsApp')">WhatsApp</button>
+          <button id="icp-tmr-Correo" class="bv bv-g" onclick="icpSetCanal('Correo')">Correo</button>
+        </div>
+      </div>
+      <div id="icp-tmr-wrap" style="overflow-x:auto;margin-top:12px"></div>
+    </div>
   </div>
 
 
@@ -991,6 +1006,7 @@ document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.targe
 
 // ── ICP Table ─────────────────────────────────────────────
 let _icpMode='m'; // 'm'=mensual, 'w'=semanal
+let _icpCanal='all'; // 'all','Web','WhatsApp','Correo'
 const ICP_ORDER=['Enterprise','Partner','Pocket','SMB','Self-Service','Otro'];
 
 function icpSetMode(mode){
@@ -998,6 +1014,15 @@ function icpSetMode(mode){
   document.getElementById('icp-btn-m').className='bv bv-g'+(mode==='m'?' active':'');
   document.getElementById('icp-btn-w').className='bv bv-g'+(mode==='w'?' active':'');
   if(window._dashData) renderICP(window._dashData);
+}
+
+function icpSetCanal(canal){
+  _icpCanal=canal;
+  ['all','Web','WhatsApp','Correo'].forEach(c=>{
+    const el=document.getElementById('icp-tmr-'+c);
+    if(el) el.className='bv bv-g'+(canal===c?' active':'');
+  });
+  if(window._dashData) renderICPTmr(window._dashData);
 }
 
 function renderICP(d){
@@ -1086,6 +1111,102 @@ function renderICP(d){
   html+='</tr>';
   html+='</tbody></table>';
 
+  wrap.innerHTML=html;
+  renderICPTmr(d);
+}
+
+function renderICPTmr(d){
+  const wrap=document.getElementById('icp-tmr-wrap');
+  if(!wrap)return;
+  const mode=_icpMode;
+  const canal=_icpCanal;
+
+  // Filter tickets: with ttr, optionally by canal
+  const base=d.tickets.filter(t=>t.ttr>0&&t.ttr<720&&t.cliente);
+  const tickets=canal==='all'?base:base.filter(t=>t.canal===canal);
+
+  // Build period labels
+  const allPeriods=[...new Set(d.tickets.map(t=>mode==='m'?t.mLbl:t.wLbl))].filter(Boolean);
+  const periods=mode==='m'
+    ?MONTHS.filter(m=>allPeriods.includes(m))
+    :allPeriods.sort((a,b)=>parseInt(a.replace('S',''))-parseInt(b.replace('S','')));
+
+  if(!periods.length||!tickets.length){
+    wrap.innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';
+    return;
+  }
+
+  // Accumulate ttr sums: icp -> period -> {sum, count}
+  const acc={};
+  ICP_ORDER.forEach(icp=>{acc[icp]={};periods.forEach(p=>{acc[icp][p]={s:0,n:0};});});
+  tickets.forEach(t=>{
+    const p=mode==='m'?t.mLbl:t.wLbl;
+    if(!p||!periods.includes(p))return;
+    const icp=ICP_ORDER.includes(t.cliente)?t.cliente:'Otro';
+    acc[icp][p].s+=t.ttr;
+    acc[icp][p].n+=1;
+  });
+
+  const avg2=(icp,p)=>acc[icp][p].n?+(acc[icp][p].s/acc[icp][p].n).toFixed(2):null;
+
+  const activeICPs=ICP_ORDER.filter(icp=>periods.some(p=>acc[icp][p].n>0));
+  if(!activeICPs.length){
+    wrap.innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';
+    return;
+  }
+
+  // TMR color scale (green<1h, yellow 1-2h, red>2h) — same as heatmap
+  const tmrCell=(v,bold=false)=>{
+    const fw=bold?'font-weight:700;':'';
+    if(v===null)return`<td style="padding:7px 12px;font-size:12px;text-align:center;border-bottom:1px solid #F3F4F6;white-space:nowrap;${fw}color:#D1D5DB">—</td>`;
+    const bg=v<=1?`rgba(16,185,129,${Math.min(0.15+v*0.5,0.85)})`:v<=2?`rgba(245,158,11,${Math.min(0.15+(v-1)*0.5,0.85)})`:`rgba(239,68,68,${Math.min(0.15+(v-2)*0.35,0.85)})`;
+    const color=v<=1?'#065F46':v<=2?'#92400E':'#991B1B';
+    return`<td style="padding:7px 12px;font-size:12px;text-align:center;border-bottom:1px solid #F3F4F6;white-space:nowrap;${fw}background:${bg};color:${color}">${v.toFixed(1)}h</td>`;
+  };
+
+  const thStyle='padding:8px 12px;background:#F3F4F6;font-weight:600;font-size:12px;color:#374151;white-space:nowrap;border-bottom:2px solid #E5E7EB;position:sticky;top:0;z-index:2';
+  const firstThStyle='padding:8px 12px;background:#F3F4F6;font-weight:600;font-size:12px;color:#374151;border-bottom:2px solid #E5E7EB;position:sticky;left:0;top:0;z-index:3;min-width:120px';
+  const tdLabel='padding:7px 12px;font-size:12px;font-weight:600;color:#1F2937;border-bottom:1px solid #F3F4F6;position:sticky;left:0;background:#fff;white-space:nowrap;z-index:1';
+
+  let html='<table style="border-collapse:collapse;width:100%;min-width:600px">';
+  html+='<thead><tr>';
+  html+=`<th style="${firstThStyle}">ICP / Cliente</th>`;
+  periods.forEach(p=>{html+=`<th style="${thStyle}">${p}</th>`;});
+  html+=`<th style="${thStyle};background:#EDE9FE;color:#4C1D95">Promedio</th>`;
+  html+='</tr></thead><tbody>';
+
+  activeICPs.forEach((icp,ri)=>{
+    const bg=ri%2===0?'#fff':'#FAFAFA';
+    const allTtr=tickets.filter(t=>{
+      const icp2=ICP_ORDER.includes(t.cliente)?t.cliente:'Otro';
+      return icp2===icp;
+    }).map(t=>t.ttr);
+    const rowAvg=allTtr.length?+(allTtr.reduce((s,x)=>s+x,0)/allTtr.length).toFixed(2):null;
+    html+=`<tr><td style="${tdLabel};background:${bg}">${icp}</td>`;
+    periods.forEach(p=>{html+=tmrCell(avg2(icp,p));});
+    html+=tmrCell(rowAvg,true);
+    html+='</tr>';
+  });
+
+  // Totals row
+  const totalByPeriod=periods.map(p=>{
+    const ts=tickets.filter(t=>{
+      const pp=mode==='m'?t.mLbl:t.wLbl;return pp===p;
+    });
+    return ts.length?+(ts.reduce((s,t)=>s+t.ttr,0)/ts.length).toFixed(2):null;
+  });
+  const grandAvg=tickets.length?+(tickets.reduce((s,t)=>s+t.ttr,0)/tickets.length).toFixed(2):null;
+  html+='<tr style="border-top:2px solid #E5E7EB">';
+  html+=`<td style="${tdLabel};background:#F3F4F6;font-weight:700">Promedio</td>`;
+  totalByPeriod.forEach(v=>{
+    if(v===null){html+=`<td style="padding:7px 12px;font-size:12px;text-align:center;background:#F3F4F6;font-weight:700;color:#D1D5DB">—</td>`;return;}
+    const bg=v<=1?`rgba(16,185,129,${Math.min(0.15+v*0.5,0.85)})`:v<=2?`rgba(245,158,11,${Math.min(0.15+(v-1)*0.5,0.85)})`:`rgba(239,68,68,${Math.min(0.15+(v-2)*0.35,0.85)})`;
+    const color=v<=1?'#065F46':v<=2?'#92400E':'#991B1B';
+    html+=`<td style="padding:7px 12px;font-size:12px;text-align:center;font-weight:700;background:${bg};color:${color}">${v.toFixed(1)}h</td>`;
+  });
+  if(grandAvg===null){html+=`<td style="padding:7px 12px;font-size:12px;text-align:center;background:#4C1D95;color:#fff;font-weight:700">—</td>`;}
+  else{html+=`<td style="padding:7px 12px;font-size:12px;text-align:center;background:#4C1D95;color:#fff;font-weight:700">${grandAvg.toFixed(1)}h</td>`;}
+  html+='</tr></tbody></table>';
   wrap.innerHTML=html;
 }
 
