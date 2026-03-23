@@ -511,9 +511,10 @@ function parseD(v){
   if(p.length===3){const a=new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);if(!isNaN(a))return a;}
   return null;
 }
+const MARCH1=new Date("2026-03-01");
 const is26=d=>d&&d.getFullYear()===2026;
 const mLbl=d=>d?MONTHS[d.getMonth()]:"";
-const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);return`S${Math.ceil(((d-j)/86400000+(j.getDay()+6)%7+1)/7)}`;};
+const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);return`S${Math.ceil(((d-j)/86400000+(j.getDay()+6)%7+1)/7)}`;};;
 function csat(v){
   if(v===null||v===undefined||v==="")return null;
   const n=parseFloat(String(v).replace(",","."));
@@ -534,7 +535,6 @@ function process(raw){
   const chat=raw["Canal Chat.xlsx"]||[],correo=raw["Canal Correo.xlsx"]||[];
   const csatOp=raw["CSAT Operadores.xlsx"]||[],aiChatsRaw=raw["Chats AI Agent.xlsx"]||[];
   const tmap={};
-  const MARCH1=new Date("2026-03-01");
   const add=(row,src)=>{
     const tk=String(row["Ticket"]||row["Numero de registro"]||"").trim();
     if(!tk)return;
