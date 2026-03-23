@@ -174,6 +174,7 @@ canvas{cursor:pointer}
     </div>
     <div class="row g-3 mb-3" id="g-cards"></div>
     <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución mensual de casos</div><div class="cc-sub">Volumen mensual por canal</div></div></div><canvas id="ch-vol" height="85"></canvas></div></div></div>
+    <div class="row g-3 mb-3"><div class="col-12"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">Evolución TMR</div><div class="cc-sub">Tiempo de resolución promedio por período de cierre</div></div></div><canvas id="ch-g-tmr" height="70"></canvas></div></div></div>
     <div class="row g-3 mb-3">
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">TMR promedio mensual (horas)</div><div class="cc-sub">Tiempo de resolución por mes</div></div></div><canvas id="ch-ttr" height="130"></canvas></div></div>
       <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl">CSAT mensual</div><div class="cc-sub">Satisfacción promedio (1–5)</div></div></div><canvas id="ch-csat" height="130"></canvas></div></div>
@@ -675,6 +676,14 @@ function renderG(d){
       {label:canal,data:periods.map(p=>(bm[p]||[]).length),backgroundColor:'rgba(124,58,237,.75)',borderRadius:4},
     ]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Casos — ${p}`);}}}  );
   }
+  // TMR evolution by fci period
+  const pLblFci=t=>mode==='m'?t.mLblFci:t.wLblFci;
+  const bmFciG=grp(tickets.filter(t=>t.ttr>0&&t.ttr<720),pLblFci);
+  const fciPeriodsG=mode==='m'
+    ?MONTHS.filter(p=>bmFciG[p])
+    :[...new Set(Object.keys(bmFciG))].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const tmrG=fciPeriodsG.map(p=>+avg((bmFciG[p]||[]).map(t=>t.ttr)).toFixed(2));
+  mk('ch-g-tmr',{type:'line',data:{labels:fciPeriodsG,datasets:[{label:'TMR (h)',data:tmrG,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.08)',fill:true,borderWidth:2,pointRadius:4,pointBackgroundColor:tmrG.map(v=>v>1?'#EF4444':v>0.75?'#F59E0B':'#10B981'),tension:.3}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}},onClick:(e,el)=>{if(!el.length)return;const p=fciPeriodsG[el[0].index];showDetailFiltered(tickets.filter(t=>pLblFci(t)===p),`TMR — ${p}`);}}}  );
   const tramoCols=['#10B981','#7C3AED','#F59E0B','#EF9A44','#EF4444','#991B1B'];
   const tramoLbls=['<15 min','15-30 min','30-45 min','45-60 min','60-90 min','>90 min'];
   const tramoData=[
