@@ -149,11 +149,7 @@ canvas{cursor:pointer}
 <!-- Topbar -->
 <div class="topbar">
   <div class="tb-title" id="page-title">Overview — 2026</div>
-  <div class="tb-right">
-    <div class="badge-live" id="live-badge" style="display:none">En vivo</div>
-    <button class="bv bv-g active" id="btn-g" onclick="setView('g')">Overview</button>
-    <button class="bv bv-o" id="btn-o" onclick="setView('o')">Ops</button>
-  </div>
+  <div class="tb-right"></div>
 </div>
 
 <!-- Main -->
@@ -603,7 +599,6 @@ async function loadExcel(){
 function render(data,savedAt){
   showLoading(false);
   window._dashData=data;
-  document.getElementById('live-badge').style.display='flex';
   const allDates=data.tickets.map(t=>t.fc).filter(Boolean);
   const maxDate=allDates.length?new Date(Math.max(...allDates.map(d=>d instanceof Date?d.getTime():new Date(d).getTime()))):null;
   const fechaStr=maxDate&&!isNaN(maxDate)?maxDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):(savedAt?new Date(savedAt).toLocaleDateString('es-CO'):'—');
