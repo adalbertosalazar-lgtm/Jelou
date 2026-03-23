@@ -770,19 +770,22 @@ function canalKpis(tickets,idCards,label){
     sCard('TMR promedio',ttrA?`${ttrA}h`:'—','Tiempo de resolución','tr-n','fas fa-clock','ic-t');
 }
 function canalTblRows(tickets,tbId){
-  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
   const rows=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,30);
-  document.getElementById(tbId).innerHTML=rows.map(t=>`
-    <tr>
+  document.getElementById(tbId).innerHTML=rows.map(t=>{
+    const isRecent=t.fc instanceof Date&&!isNaN(t.fc)&&t.fc>=MARCH1;
+    const hideFci=isRecent&&t.estado!=='Resuelto';
+    return`<tr>
       <td><code style="font-size:10px;color:#7C3AED">${String(t.tk).slice(0,14)}</code></td>
       ${tbId==='tbl-ch'?`<td><span class="bs bs-pr">${t.canal||'—'}</span></td>`:''}
       <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
       <td>${(t.agente||'').split(' ')[0]||'—'}</td>
       <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
-      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
+      <td style="color:#9CA3AF;font-size:11px">${hideFci?'—':fmt(t.fci)}</td>
       <td style="font-weight:600;color:${t.ttr>1?'#DC2626':t.ttr>0.75?'#D97706':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 // ── Render Canal Chat ─────────────────────
@@ -982,18 +985,21 @@ function buildDetailTable(label,rows){
 }
 
 function renderDetailRows(rows){
-  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO'):'—';
-  document.getElementById('det-body').innerHTML=rows.map(t=>`
-    <tr>
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  document.getElementById('det-body').innerHTML=rows.map(t=>{
+    const isRecent=t.fc instanceof Date&&!isNaN(t.fc)&&t.fc>=MARCH1;
+    const hideFci=isRecent&&t.estado!=='Resuelto';
+    return`<tr>
       <td><code style="font-size:10px;color:#7C3AED">${t.tk||'—'}</code></td>
       <td><strong>${t.agente||'—'}</strong></td>
       <td><span class="bs bs-pr">${t.canal||'—'}</span></td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
       <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
       <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
-      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fci)}</td>
+      <td style="color:#9CA3AF;font-size:11px">${hideFci?'—':fmt(t.fci)}</td>
       <td style="font-weight:600;color:${t.ttr>1?'#DC2626':t.ttr>0.75?'#D97706':'#374151'}">${t.ttr?t.ttr.toFixed(1)+'h':'—'}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
   document.getElementById('det-count').textContent=`${rows.length} registros`;
 }
 
