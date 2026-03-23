@@ -514,7 +514,7 @@ function parseD(v){
 const MARCH1=new Date("2026-03-01");
 const is26=d=>d&&d.getFullYear()===2026;
 const mLbl=d=>d?MONTHS[d.getMonth()]:"";
-const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);return`S${Math.ceil(((d-j)/86400000+(j.getDay()+6)%7+1)/7)}`;};;
+const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);const day=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-j)/86400000);return`S${Math.ceil((day+(j.getDay()+6)%7+1)/7)}`;};;
 function csat(v){
   if(v===null||v===undefined||v==="")return null;
   const n=parseFloat(String(v).replace(",","."));
@@ -539,17 +539,34 @@ function process(raw){
     const tk=String(row["Ticket"]||row["Numero de registro"]||"").trim();
     if(!tk)return;
     if((row["Estado"]||"").trim()==="Desestimado")return;
-    const fc=parseD(row["Fecha de creación"]);
+    const fc=parseD(row["Fecha creacion"]);
     if(!is26(fc))return;
     const rawEstado=(row["Estado"]||"").trim();
     const isLegacy=fc&&fc<MARCH1;
-    // Legacy (pre-marzo): siempre resuelto, TMR desde última actualización
-    // Recientes (desde marzo): TMR solo si está Resuelto, resto como abierto
-    const fci=parseD(row["Fecha de actualización"]);
-    const estado=isLegacy?"Resuelto":rawEstado;
-    const isResolved=isLegacy||(rawEstado==="Resuelto");
-    const ttr=isResolved&&fc&&fci&&fci>fc?(fci-fc)/3600000:null;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",mLblFci:fci?mLbl(fci):"",wLblFci:fci?wLbl(fci):"",cliente:(row["Cliente"]||"").trim()};
+    const fciRow=isLegacy
+      ?parseD(row["Fecha actualizacion"]||row["Fecha cerrado"])
+      :parseD(row["Fecha cerrado"]||row["Fecha actualizacion"]);
+    if(!tmap[tk]){
+      // Primera vez que vemos este ticket
+      const estado=isLegacy?"Resuelto":rawEstado;
+      const isResolved=isLegacy||(rawEstado==="Resuelto");
+      const ttr=isResolved&&fc&&fciRow&&fciRow>fc?(fciRow-fc)/3600000:null;
+      tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,rawEstado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci:fciRow,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",mLblFci:fciRow?mLbl(fciRow):"",wLblFci:fciRow?wLbl(fciRow):"",cliente:(row["Cliente"]||"").trim()};
+    } else {
+      // Evento adicional del mismo ticket: fc mínima, fci máxima, estado del evento más reciente
+      const t=tmap[tk];
+      if(fc&&(!t.fc||fc<t.fc)){t.fc=fc;t.mLbl=mLbl(fc);t.wLbl=wLbl(fc);}
+      if(fciRow&&(!t.fci||fciRow>t.fci)){t.fci=fciRow;t.mLblFci=mLbl(fciRow);t.wLblFci=wLbl(fciRow);}
+      // Tomar el estado e info del evento más reciente (fci mayor)
+      if(fciRow&&t.fci&&fciRow>=t.fci){
+        t.estado=isLegacy?"Resuelto":rawEstado;
+        t.rawEstado=rawEstado;
+        t.resolvedBy=row["Resuelto por"]||t.resolvedBy;
+      }
+      // Recalcular ttr con fc y fci actualizados
+      const isResolved=isLegacy||(t.rawEstado==="Resuelto");
+      t.ttr=isResolved&&t.fc&&t.fci&&t.fci>t.fc?(t.fci-t.fc)/3600000:null;
+    }
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
