@@ -461,9 +461,9 @@ function serializeData(d){
 }
 function deserializeData(d){
   return{
-    tickets:d.tickets.map(t=>({...t,fc:t.fc?new Date(t.fc):null,fci:t.fci?new Date(t.fci):null})),
-    csatRows:d.csatRows.map(r=>({...r,f:r.f?new Date(r.f):null})),
-    aiChats:d.aiChats.map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''}))
+    tickets:(d.tickets||[]).map(t=>({...t,fc:t.fc?new Date(t.fc):null,fci:t.fci?new Date(t.fci):null})),
+    csatRows:(d.csatRows||[]).map(r=>({...r,f:r.f?new Date(r.f):null})),
+    aiChats:(d.aiChats||[]).map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''}))
   };
 }
 
@@ -618,7 +618,9 @@ function render(data,savedAt){
   const maxDate=allDates.length?new Date(Math.max(...allDates.map(d=>d instanceof Date?d.getTime():new Date(d).getTime()))):null;
   const fechaStr=maxDate&&!isNaN(maxDate)?maxDate.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}):(savedAt?new Date(savedAt).toLocaleDateString('es-CO'):'—');
   document.getElementById('last-upd').textContent=`Actualizado hasta: ${fechaStr}`;
-  renderG(data);renderO(data);setView(currentView);
+  try{renderG(data);}catch(e){console.error('renderG',e);}
+  try{renderO(data);}catch(e){console.error('renderO',e);}
+  setView(currentView);
 }
 
 function mk(id,cfg){
@@ -1407,15 +1409,17 @@ function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
 
 window.addEventListener('load',async()=>{
   showLoading(true);
-  // 1. Intentar GitHub (compartido con todos)
-  const gh=await fetchFromGitHub();
-  if(gh&&gh.data){render(deserializeData(gh.data),gh.savedAt);return;}
-  // 2. Fallback: localStorage (solo este navegador)
-  const local=loadLocal();
-  if(local&&local.data){render(deserializeData(local.data),local.savedAt);return;}
+  try{
+    // 1. Intentar GitHub (compartido con todos)
+    const gh=await fetchFromGitHub();
+    if(gh&&gh.data){render(deserializeData(gh.data),gh.savedAt);return;}
+    // 2. Fallback: localStorage (solo este navegador)
+    const local=loadLocal();
+    if(local&&local.data){render(deserializeData(local.data),local.savedAt);return;}
+  }catch(e){console.error('load error',e);}
   // 3. Sin datos: mostrar vacío
   showLoading(false);
-  document.getElementById('pane-g').classList.add('show');
+  setView(currentView);
 });
 </script>
 </body>
