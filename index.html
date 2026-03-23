@@ -549,7 +549,7 @@ function process(raw){
     const estado=isLegacy?"Resuelto":rawEstado;
     const isResolved=isLegacy||(rawEstado==="Resuelto");
     const ttr=isResolved&&fc&&fci&&fci>fc?(fci-fc)/3600000:null;
-    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",cliente:(row["Cliente"]||"").trim()};
+    if(!tmap[tk])tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",mLblFci:fci?mLbl(fci):"",wLblFci:fci?wLbl(fci):"",cliente:(row["Cliente"]||"").trim()};
   };
   chat.forEach(r=>add(r,"chat"));correo.forEach(r=>add(r,"correo"));
   const tickets=Object.values(tmap);
@@ -674,13 +674,16 @@ function renderG(d){
   mk('ch-canal',{type:'doughnut',data:{labels:cd.map(d=>d.c),datasets:[{data:cd.map(d=>d.n),backgroundColor:['#7C3AED','#4F46E5','#10B981','#F59E0B'],borderWidth:0,hoverOffset:5}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=cd[el[0].index].c;showDetailFiltered(tickets.filter(t=>t.canal===c),`Canal: ${c}`);}}}  );
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Tipo: ${tipo}`);}}}  );
-  renderHeatmap(tickets,periods,'hm-agente-mes',mode);
+  renderHeatmap(tickets,'hm-agente-mes',mode);
   renderICPTop5({tickets:allTix},'ch-g-top5','g-canal-cards');
 }
 
-function renderHeatmap(tickets,periods,containerId,mode='m'){
+function renderHeatmap(tickets,containerId,mode='m'){
   const resolved=tickets.filter(t=>t.resolvedBy&&t.ttr>0&&t.ttr<720);
-  const pField=mode==='m'?'mLbl':'wLbl';
+  const pField=mode==='m'?'mLblFci':'wLblFci';
+  const periods=mode==='m'
+    ?MONTHS.filter(p=>[...new Set(resolved.map(t=>t[pField]))].includes(p))
+    :[...new Set(resolved.map(t=>t[pField]))].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
   const agentes=[...new Set(resolved.map(t=>t.resolvedBy))].sort();
   if(!agentes.length||!periods.length){document.getElementById(containerId).innerHTML='<p style="color:#9CA3AF;font-size:12px;padding:12px">Sin datos suficientes</p>';return;}
   const cell=(v,agente,p)=>{
@@ -717,8 +720,15 @@ function renderO(d){
   const periods=mode==='m'
     ?MONTHS.filter(p=>bs[p]||cs[p])
     :[...new Set([...Object.keys(bs),...Object.keys(cs)])].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
-  const evo=periods.map(p=>{const ts=bs[p]||[],csr=cs[p]||[];const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{p,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null,ttr:tt.length?+avg(tt).toFixed(1):null};});
+  const evo=periods.map(p=>{const ts=bs[p]||[],csr=cs[p]||[];return{p,tk:ts.length,cs:csr.length?+avg(csr.map(c=>c.v)).toFixed(2):null};});
+  const pLblFci=t=>mode==='m'?t.mLblFci:t.wLblFci;
+  const bmFci=grp(tickets.filter(t=>t.ttr>0&&t.ttr<720),pLblFci);
+  const fciPeriods=mode==='m'
+    ?MONTHS.filter(p=>bmFci[p])
+    :[...new Set(Object.keys(bmFci))].filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const ts2=fciPeriods.map(p=>({p,ttr:+avg((bmFci[p]||[]).map(t=>t.ttr)).toFixed(1)}));
   const ult=evo[evo.length-1]||{},ab=tickets.filter(t=>!closed(t.estado)).length;
+  const ultFciTtr=ts2.length?ts2[ts2.length-1].ttr:null;
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ags=Object.entries(ba).map(([a,ts])=>{const op=ts.filter(t=>!closed(t.estado)).length;const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);const slaOk=tt.filter(t=>t<=1).length;const slaPct=tt.length?Math.round(slaOk/tt.length*100):null;return{a,tot:ts.length,op,ttr:tt.length?+avg(tt).toFixed(1):null,slaPct};}).sort((a,b)=>b.tot-a.tot);
   const periodoLbl=mode==='m'?'mes':'semana';
@@ -726,14 +736,13 @@ function renderO(d){
     sCard(`Casos este ${periodoLbl}`,ult.tk??'—',`${mode==='m'?'Mes':'Semana'} actual`,'tr-n','fas fa-inbox','ic-v',`showDetail('${mode==='m'?'mes':'semana'}','Casos este ${periodoLbl}')`)+
     sCard('Abiertos',ab,ab>20?'Revisión recomendada':'Nivel normal',ab>20?'tr-dn':'tr-up','fas fa-folder-open','ic-a',"showDetail('abiertos','Casos abiertos')")+
     sCard(`CSAT este ${periodoLbl}`,ult.cs?`${ult.cs}/5`:'—','Satisfacción','tr-n','fas fa-smile','ic-g',null)+
-    sCard(`TMR este ${periodoLbl}`,ult.ttr?`${ult.ttr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
+    sCard(`TMR este ${periodoLbl}`,ultFciTtr?`${ultFciTtr}h`:'—','Tiempo resolución','tr-n','fas fa-hourglass-half','ic-t',"showDetail('con-ttr','Casos con TMR calculado')")+
     sCard('Agentes',ags.length,'Con casos asignados','tr-n','fas fa-user-tie','ic-r',null);
   mk('ch-sem',{type:'bar',data:{labels:periods,datasets:[
     {type:'bar',label:'Casos',data:evo.map(e=>e.tk),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4,yAxisID:'y'},
     {type:'line',label:'CSAT',data:evo.map(e=>e.cs),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,pointRadius:3,yAxisID:'y2',tension:.3},
   ]},options:{...GO,scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10}}},y2:{position:'right',min:1,max:5,grid:{display:false},ticks:{font:{size:10}}}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`${mode==='m'?'Mes':'Semana'}: ${p}`);}}}  );
-  const ts2=evo.filter(e=>e.ttr);
-  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.p),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=ts2[el[0].index].p;showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`TMR: ${p}`);}}}  );
+  mk('ch-sem-ttr',{type:'bar',data:{labels:ts2.map(e=>e.p),datasets:[{label:'TMR (h)',data:ts2.map(e=>e.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=ts2[el[0].index].p;showDetailFiltered(tickets.filter(t=>pLblFci(t)===p),`TMR: ${p}`);}}}  );
   document.getElementById('tbl-ag').innerHTML=ags.slice(0,15).map(a=>`<tr><td><strong>${a.a}</strong></td><td>${a.tot}</td><td style="color:${a.op>4?'#D97706':'#059669'};font-weight:600">${a.op}</td><td style="color:${a.ttr&&a.ttr>1?'#DC2626':a.ttr&&a.ttr>0.75?'#D97706':'#374151'}">${a.ttr?a.ttr+'h':'—'}</td><td style="font-weight:700;color:${a.slaPct===null?'#9CA3AF':a.slaPct>=85?'#059669':a.slaPct>=70?'#D97706':'#DC2626'}">${a.slaPct!==null?a.slaPct+'%':'—'}</td><td><span class="bs ${a.op>4?'bs-op':'bs-cl'}">${a.op>4?'Carga alta':'Normal'}</span></td></tr>`).join('');
   const rec=[...tickets].sort((a,b)=>(b.fc||0)-(a.fc||0)).slice(0,20);
   const now=new Date();
@@ -813,8 +822,11 @@ function renderCh(d){
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Chat — Tipo: ${tipo}`);}}}  );
-  const tm=periods.map(p=>{const tt=(bm[p]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-ch-ttr',{type:'bar',data:{labels:periods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
+  const pLblFci=t=>mode==='m'?t.mLblFci:t.wLblFci;
+  const bmFci=grp(tickets.filter(t=>t.ttr>0&&t.ttr<720),pLblFci);
+  const fciPeriods=mode==='m'?MONTHS.filter(p=>bmFci[p]):Object.keys(bmFci).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const tm=fciPeriods.map(p=>+avg((bmFci[p]||[]).map(t=>t.ttr)).toFixed(1));
+  mk('ch-ch-ttr',{type:'bar',data:{labels:fciPeriods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}},onClick:(e,el)=>{if(!el.length)return;const p=fciPeriods[el[0].index];showDetailFiltered(tickets.filter(t=>pLblFci(t)===p),`Chat TMR: ${p}`);}}});
   const ba=grp(tickets.filter(t=>t.agente),t=>t.agente);
   const ad=Object.entries(ba).map(([a,ts])=>{const tt=ts.filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return{a:a.split(' ')[0],tot:ts.length,ttr:tt.length?+avg(tt).toFixed(1):0};}).sort((a,b)=>b.tot-a.tot).slice(0,10);
   mk('ch-ch-ag',{type:'bar',data:{labels:ad.map(d=>d.a),datasets:[{label:'Casos',data:ad.map(d=>d.tot),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4},{label:'TMR (h)',data:ad.map(d=>d.ttr),backgroundColor:'rgba(245,158,11,.7)',borderRadius:4}]},options:{...GO,onClick:(e,el)=>{if(!el.length)return;const ag=ad[el[0].index].a;showDetailFiltered(tickets.filter(t=>(t.agente||'').split(' ')[0]===ag),`Chat — Agente: ${ag}`);}}}  );
@@ -832,8 +844,11 @@ function renderCo(d){
     ?MONTHS.filter(p=>bm[p])
     :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
   mk('ch-co-vol',{type:'bar',data:{labels:periods,datasets:[{label:'Casos',data:periods.map(p=>(bm[p]||[]).length),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(tickets.filter(t=>pLbl(t)===p),`Correo — ${p}`);}}}  );
-  const tm=periods.map(p=>{const tt=(bm[p]||[]).filter(t=>t.ttr>0&&t.ttr<720).map(t=>t.ttr);return tt.length?+avg(tt).toFixed(1):null;});
-  mk('ch-co-ttr',{type:'bar',data:{labels:periods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}});
+  const pLblFci=t=>mode==='m'?t.mLblFci:t.wLblFci;
+  const bmFci=grp(tickets.filter(t=>t.ttr>0&&t.ttr<720),pLblFci);
+  const fciPeriods=mode==='m'?MONTHS.filter(p=>bmFci[p]):Object.keys(bmFci).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
+  const tm=fciPeriods.map(p=>+avg((bmFci[p]||[]).map(t=>t.ttr)).toFixed(1));
+  mk('ch-co-ttr',{type:'bar',data:{labels:fciPeriods,datasets:[{label:'TMR (h)',data:tm,backgroundColor:tm.map(v=>v&&v>1?'rgba(239,68,68,.7)':v&&v>0.75?'rgba(245,158,11,.7)':'rgba(79,70,229,.7)'),borderRadius:4}]},options:{...GO,plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:1,yMax:1,borderColor:'#EF4444',borderWidth:2,borderDash:[6,4],label:{content:'Meta 60 min',display:true,position:'end',font:{size:10},color:'#EF4444',backgroundColor:'rgba(255,255,255,0.8)'}}}}}}},onClick:(e,el)=>{if(!el.length)return;const p=fciPeriods[el[0].index];showDetailFiltered(tickets.filter(t=>pLblFci(t)===p),`Correo TMR: ${p}`);}}});
   const bt=grp(tickets.filter(t=>t.tipo),t=>t.tipo);
   const td=Object.entries(bt).map(([t,a])=>({t,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,7);
   mk('ch-co-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Correo — Tipo: ${tipo}`);}}}  );
@@ -877,6 +892,7 @@ function renderSLA(d){
   const mode=_slaMode,canal=_slaCanal;
   const tickets=canal==='all'?allTix:allTix.filter(t=>t.canal===canal);
   const pLbl=t=>mode==='m'?t.mLbl:t.wLbl;
+  const pLblFci=t=>mode==='m'?t.mLblFci:t.wLblFci;
   const withTTR=tickets.filter(t=>t.ttr>0&&t.ttr<720);
   const breaches=withTTR.filter(t=>t.ttr>1);
   const ok=withTTR.filter(t=>t.ttr<=1);
@@ -898,12 +914,12 @@ function renderSLA(d){
   ];
   const slaRanges=[[0,0.25],[0.25,0.5],[0.5,0.75],[0.75,1],[1,1.5],[1.5,720]];
   mk('ch-sla-hist',{type:'bar',data:{labels:tramoLbls,datasets:[{label:'Casos',data:tramoData,backgroundColor:tramoCols,borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const[lo,hi]=slaRanges[el[0].index];showDetailFiltered(withTTR.filter(t=>t.ttr>lo&&t.ttr<=hi),`TMR: ${tramoLbls[el[0].index]}`);}}}  );
-  const bm=grp(withTTR,pLbl);
+  const bm=grp(withTTR,pLblFci);
   const periods=mode==='m'
     ?MONTHS.filter(p=>bm[p])
     :Object.keys(bm).filter(Boolean).sort((a,b)=>parseInt(a.slice(1))-parseInt(b.slice(1)));
   const slaTrend=periods.map(p=>{const ts=bm[p]||[];return ts.length?Math.round(ts.filter(t=>t.ttr<=1).length/ts.length*100):null;});
-  mk('ch-sla-trend',{type:'line',data:{labels:periods,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(withTTR.filter(t=>pLbl(t)===p),`SLA — ${p}`);}})
+  mk('ch-sla-trend',{type:'line',data:{labels:periods,datasets:[{label:'SLA %',data:slaTrend,borderColor:'#7C3AED',backgroundColor:'rgba(124,58,237,.07)',fill:true,borderWidth:2,pointRadius:4,tension:.3}]},options:{...GO,scales:{...GO.scales,y:{...GO.scales.y,min:0,max:100,ticks:{callback:v=>v+'%',font:{size:10}}}},plugins:{legend:{display:false},annotation:{annotations:{meta:{type:'line',yMin:85,yMax:85,borderColor:'#10B981',borderWidth:2,borderDash:[6,4],label:{content:'Meta 85%',display:true,position:'end',font:{size:10},color:'#10B981',backgroundColor:'rgba(255,255,255,0.8)'}}}}}},onClick:(e,el)=>{if(!el.length)return;const p=periods[el[0].index];showDetailFiltered(withTTR.filter(t=>pLblFci(t)===p),`SLA — ${p}`);}})
   const bc=grp(breaches,t=>t.canal);
   const bcd=Object.entries(bc).map(([c,a])=>({c,n:a.length})).sort((a,b)=>b.n-a.n);
   mk('ch-sla-canal',{type:'doughnut',data:{labels:bcd.map(d=>d.c),datasets:[{data:bcd.map(d=>d.n),backgroundColor:['#EF4444','#D97706','#7C3AED','#4F46E5'],borderWidth:0}]},options:{responsive:true,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:11,padding:10}}},onClick:(e,el)=>{if(!el.length)return;const c=bcd[el[0].index].c;showDetailFiltered(breaches.filter(t=>t.canal===c),`Breaches — Canal: ${c}`);}}}  );
