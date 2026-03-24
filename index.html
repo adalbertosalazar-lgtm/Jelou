@@ -376,48 +376,88 @@ canvas{cursor:pointer}
       <select id="wfm-month-sel" onchange="_wfmMonth=this.value;if(window._dashData)renderWFM(window._dashData)" style="padding:5px 10px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer"></select>
     </div>
     <div class="row g-3 mb-3" id="wfm-cards"></div>
+    <!-- Volumen por hora -->
     <div class="row g-3 mb-3">
       <div class="col-12"><div class="cc">
         <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-chart-bar me-2" style="color:#7C3AED"></i>Volumen por hora y canal</div><div class="cc-sub">Casos recibidos por franja horaria en horario operativo (8:00–21:00)</div></div></div>
         <canvas id="wfm-vol-hora" height="75"></canvas>
       </div></div>
     </div>
+    <!-- Heatmap -->
     <div class="row g-3 mb-3">
       <div class="col-12"><div class="cc">
         <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-th me-2" style="color:#7C3AED"></i>Distribución por día y hora</div><div class="cc-sub">Intensidad de casos — escala de color por volumen relativo</div></div></div>
         <div style="overflow-x:auto;margin-top:8px" id="wfm-heatmap"></div>
       </div></div>
     </div>
-    <div class="row g-3 mb-3">
-      <div class="col-12"><div class="cc">
-        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-calendar-alt me-2" style="color:#7C3AED"></i>Horario sugerido — Lunes a Viernes</div><div class="cc-sub">Calculado sobre la semana previa · 4 agentes · turnos 8h · 2 breaks de 15 min · ☕ = break</div></div></div>
-        <div style="overflow-x:auto;margin-top:12px" id="wfm-gantt-wd"></div>
-        <div style="overflow-x:auto;margin-top:12px"><table class="dt"><thead><tr><th>Agente</th><th>Entrada</th><th>Salida</th><th>Break AM</th><th>Break PM</th></tr></thead><tbody id="wfm-sched-wd"></tbody></table></div>
-      </div></div>
-    </div>
+    <!-- Erlang C — Chat -->
     <div class="row g-3 mb-3">
       <div class="col-12"><div class="cc">
         <div class="cc-hd" style="flex-wrap:wrap;gap:10px">
-          <div><div class="cc-ttl"><i class="fas fa-calculator me-2" style="color:#7C3AED"></i>Erlang C — Agentes requeridos vs disponibles</div><div class="cc-sub">Dimensionamiento por hora · barras = volumen · línea morada = agentes requeridos · línea verde = 4 disponibles</div></div>
+          <div><div class="cc-ttl"><i class="fas fa-comments me-2" style="color:#7C3AED"></i>Erlang C — Chat (Web + WhatsApp) · máx 5 chats simultáneos por agente</div><div class="cc-sub">Agentes Chat requeridos vs capacidad efectiva según horario real · rojo = hora sin cobertura suficiente</div></div>
           <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-            <label style="font-size:11px;color:#6B7280;font-weight:600">AHT (min)<br><input id="wfm-aht" type="number" value="20" min="1" max="120" style="width:58px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="if(window._dashData)renderWFM(window._dashData)"></label>
-            <label style="font-size:11px;color:#6B7280;font-weight:600">SL objetivo (%)<br><input id="wfm-sl" type="number" value="80" min="10" max="100" style="width:58px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="if(window._dashData)renderWFM(window._dashData)"></label>
-            <label style="font-size:11px;color:#6B7280;font-weight:600">En (seg)<br><input id="wfm-slt" type="number" value="60" min="10" max="900" style="width:62px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="if(window._dashData)renderWFM(window._dashData)"></label>
-            <label style="font-size:11px;color:#6B7280;font-weight:600">Agentes disponibles<br><input id="wfm-nagents" type="number" value="4" min="1" max="20" style="width:58px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="if(window._dashData)renderWFM(window._dashData)"></label>
+            <label style="font-size:11px;color:#6B7280;font-weight:600">AHT Chat (min)<br><input id="wfm-aht-chat" type="number" value="20" min="1" max="120" style="width:64px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
+            <label style="font-size:11px;color:#6B7280;font-weight:600">SL objetivo (%)<br><input id="wfm-sl-chat" type="number" value="80" min="10" max="100" style="width:58px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
+            <label style="font-size:11px;color:#6B7280;font-weight:600">En (seg)<br><input id="wfm-slt-chat" type="number" value="60" min="10" max="900" style="width:62px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
           </div>
         </div>
-        <canvas id="wfm-erlang-chart" height="85"></canvas>
-      </div></div>
-    </div>
-    <div class="row g-3 mb-3">
-      <div class="col-12"><div class="tc">
-        <div class="tc-hd"><h6><i class="fas fa-table me-2" style="color:#7C3AED"></i>Detalle Erlang C por hora</h6></div>
-        <div style="overflow-x:auto"><table class="dt">
-          <thead><tr><th>Hora</th><th>Volumen</th><th>Tráfico (A)</th><th>Ag. requeridos</th><th>Disponibles</th><th>SL% logrado</th><th>Gap</th></tr></thead>
-          <tbody id="wfm-erlang-tbody"></tbody>
+        <canvas id="wfm-erlang-chat" height="85"></canvas>
+        <div style="overflow-x:auto;margin-top:10px"><table class="dt">
+          <thead><tr><th>Hora</th><th>Vol Chat</th><th>Tráfico (A)</th><th>Cap. efectiva</th><th>Ag. requeridos</th><th>SL% logrado</th><th>Gap</th></tr></thead>
+          <tbody id="wfm-erlang-chat-tbody"></tbody>
         </table></div>
       </div></div>
     </div>
+    <!-- Erlang C — Correo -->
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd" style="flex-wrap:wrap;gap:10px">
+          <div><div class="cc-ttl"><i class="fas fa-envelope me-2" style="color:#4F46E5"></i>Erlang C — Correo · 1 caso por agente</div><div class="cc-sub">Agentes Correo requeridos vs disponibles según horario real · SLA 24h primera respuesta</div></div>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <label style="font-size:11px;color:#6B7280;font-weight:600">AHT Correo (min)<br><input id="wfm-aht-co" type="number" value="30" min="1" max="120" style="width:64px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
+            <label style="font-size:11px;color:#6B7280;font-weight:600">SL objetivo (%)<br><input id="wfm-sl-co" type="number" value="80" min="10" max="100" style="width:58px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
+            <label style="font-size:11px;color:#6B7280;font-weight:600">En (seg)<br><input id="wfm-slt-co" type="number" value="900" min="10" max="86400" style="width:62px;padding:4px 7px;border:1px solid #EDE9FE;border-radius:6px;font-size:12px;outline:none;margin-top:3px" onchange="wfmRefreshErlang()"></label>
+          </div>
+        </div>
+        <canvas id="wfm-erlang-co" height="85"></canvas>
+        <div style="overflow-x:auto;margin-top:10px"><table class="dt">
+          <thead><tr><th>Hora</th><th>Vol Correo</th><th>Tráfico (A)</th><th>Ag. disponibles</th><th>Ag. requeridos</th><th>SL% logrado</th><th>Gap</th></tr></thead>
+          <tbody id="wfm-erlang-co-tbody"></tbody>
+        </table></div>
+      </div></div>
+    </div>
+    <!-- Horario Sugerido -->
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-magic me-2" style="color:#7C3AED"></i>Horario sugerido — Auto calculado</div><div class="cc-sub">Optimizado sobre demanda reciente · 2 agentes Chat · 2 agentes Correo · turnos 8h · ☕ = break 15 min</div></div></div>
+        <div style="font-size:11px;font-weight:700;color:#7C3AED;margin:12px 0 4px"><i class="fas fa-comments me-1"></i>Agentes Chat</div>
+        <div style="overflow-x:auto" id="wfm-gantt-chat-sug"></div>
+        <div style="font-size:11px;font-weight:700;color:#4F46E5;margin:14px 0 4px"><i class="fas fa-envelope me-1"></i>Agentes Correo</div>
+        <div style="overflow-x:auto" id="wfm-gantt-co-sug"></div>
+        <div style="overflow-x:auto;margin-top:14px"><table class="dt">
+          <thead><tr><th>Canal</th><th>Agente</th><th>Entrada</th><th>Salida</th><th>Break AM</th><th>Break PM</th></tr></thead>
+          <tbody id="wfm-sched-sug"></tbody>
+        </table></div>
+      </div></div>
+    </div>
+    <!-- Horario Real editable -->
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd" style="flex-wrap:wrap;gap:10px">
+          <div><div class="cc-ttl"><i class="fas fa-edit me-2" style="color:#0EA5E9"></i>Horario real — Editable</div><div class="cc-sub">Ajusta agente y horario de cada turno · los cambios actualizan Erlang y Gantts en tiempo real</div></div>
+          <button onclick="wfmSaveSchedule()" style="padding:7px 16px;background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"><i class="fas fa-save"></i>Guardar horario</button>
+        </div>
+        <div style="font-size:11px;font-weight:700;color:#0EA5E9;margin:12px 0 4px"><i class="fas fa-comments me-1"></i>Gantt Chat real</div>
+        <div style="overflow-x:auto" id="wfm-gantt-chat-real"></div>
+        <div style="font-size:11px;font-weight:700;color:#0369A1;margin:14px 0 4px"><i class="fas fa-envelope me-1"></i>Gantt Correo real</div>
+        <div style="overflow-x:auto" id="wfm-gantt-co-real"></div>
+        <div style="overflow-x:auto;margin-top:14px"><table class="dt">
+          <thead><tr><th>Canal</th><th>Agente</th><th>Entrada</th><th>Salida</th><th>Break AM</th><th>Break PM</th></tr></thead>
+          <tbody id="wfm-real-tbody"></tbody>
+        </table></div>
+      </div></div>
+    </div>
+    <!-- SLA Reference -->
     <div class="cc" style="border-left:4px solid #7C3AED">
       <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-file-contract me-2" style="color:#7C3AED"></i>Referencia SLA</div></div></div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:10px">
@@ -576,14 +616,16 @@ function serializeData(d){
   return{
     tickets:d.tickets.map(t=>({...t,fc:t.fc?t.fc.getTime():null,fci:t.fci?t.fci.getTime():null})),
     csatRows:d.csatRows.map(r=>({...r,f:r.f?r.f.getTime():null})),
-    aiChats:d.aiChats.map(r=>({...r,f:r.f?r.f.getTime():null}))
+    aiChats:d.aiChats.map(r=>({...r,f:r.f?r.f.getTime():null})),
+    wfmSchedule:d.wfmSchedule||[]
   };
 }
 function deserializeData(d){
   return{
     tickets:(d.tickets||[]).map(t=>{const fci=t.fci?new Date(t.fci):null;return{...t,fc:t.fc?new Date(t.fc):null,fci,mLblFci:t.mLblFci||(fci?mLbl(fci):""),wLblFci:t.wLblFci||(fci?wLbl(fci):"")};}),
     csatRows:(d.csatRows||[]).map(r=>({...r,f:r.f?new Date(r.f):null})),
-    aiChats:(d.aiChats||[]).map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''}))
+    aiChats:(d.aiChats||[]).map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''})),
+    wfmSchedule:d.wfmSchedule||[]
   };
 }
 
@@ -1565,33 +1607,41 @@ function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
 
 // ── Workforce Management ─────────────────
 let _wfmMonth='all';
+let _wfmSched=[];          // horario real [{canal,agente,start,end,breakAm,breakPm}, ...]
+let _wfmHV={};             // volúmenes por hora guardados para Erlang
+let _wfmAgents=[];         // lista de agentes extraída de tickets
+const WFM_CONC=5;          // máx chats simultáneos por agente Chat
 const WFM_OPH=Array.from({length:13},(_,i)=>i+8); // horas 8..20
 const WFM_DOW=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
-const WFM_DOWMAP={1:0,2:1,3:2,4:3,5:4,6:5,0:6}; // getDay() → índice display
+const WFM_DOWMAP={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
 
 function renderWFM(d){
   const{tickets}=d;
-  // Poblar selector de mes
+  // ── Selector de mes ──
   const allM=[...new Set(tickets.map(t=>t.mLbl).filter(Boolean))].sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b));
   const sel=document.getElementById('wfm-month-sel');
   sel.innerHTML='<option value="all">Todos los meses</option>'+allM.map(m=>`<option value="${m}"${m===_wfmMonth?' selected':''}>${m}</option>`).join('');
-
   const tix=_wfmMonth==='all'?tickets:tickets.filter(t=>t.mLbl===_wfmMonth);
 
+  // ── Agentes únicos ──
+  _wfmAgents=[...new Set(tickets.map(t=>t.agente).filter(Boolean))].sort();
+
   // ── Volumen por hora y canal ──
-  const hv={};WFM_OPH.forEach(h=>hv[h]={Web:0,WhatsApp:0,Correo:0});
+  WFM_OPH.forEach(h=>_wfmHV[h]={chat:0,correo:0});
   tix.forEach(t=>{
     if(!(t.fc instanceof Date))return;
     const h=t.fc.getHours();
-    if(h>=8&&h<=20){const c=t.canal==='WhatsApp'?'WhatsApp':t.canal==='Correo'?'Correo':'Web';hv[h][c]++;}
+    if(h<8||h>20)return;
+    if(t.canal==='Correo')_wfmHV[h].correo++;
+    else _wfmHV[h].chat++;
   });
+
   mk('wfm-vol-hora',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
-    {label:'Chat Web',data:WFM_OPH.map(h=>hv[h].Web),backgroundColor:'rgba(124,58,237,.75)',borderRadius:3,stack:'s'},
-    {label:'WhatsApp',data:WFM_OPH.map(h=>hv[h].WhatsApp),backgroundColor:'rgba(16,185,129,.75)',borderRadius:3,stack:'s'},
-    {label:'Correo',data:WFM_OPH.map(h=>hv[h].Correo),backgroundColor:'rgba(79,70,229,.75)',borderRadius:3,stack:'s'},
+    {label:'Chat (Web/WA)',data:WFM_OPH.map(h=>_wfmHV[h].chat),backgroundColor:'rgba(124,58,237,.75)',borderRadius:3,stack:'s'},
+    {label:'Correo',data:WFM_OPH.map(h=>_wfmHV[h].correo),backgroundColor:'rgba(79,70,229,.75)',borderRadius:3,stack:'s'},
   ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}}}});
 
-  // ── Heatmap día × hora ──
+  // ── Heatmap ──
   const dh=Array.from({length:7},()=>new Array(21).fill(0));
   tix.forEach(t=>{
     if(!(t.fc instanceof Date))return;
@@ -1612,7 +1662,7 @@ function renderWFM(d){
       </tbody>
     </table>`;
 
-  // ── Horario sugerido (semana previa) ──
+  // ── Demanda reciente (semana previa) ──
   const maxDate=tix.reduce((m,t)=>t.fc instanceof Date&&t.fc>m?t.fc:m,new Date(0));
   const weekAgo=new Date(maxDate.getTime()-7*24*3600000);
   const recent=tix.filter(t=>t.fc instanceof Date&&t.fc>=weekAgo).length>=10
@@ -1623,71 +1673,63 @@ function renderWFM(d){
     const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
     if(h>=8&&h<=20)wkDH[di][h]++;
   });
-  // Demanda ponderada Lun-Vie por hora
-  const wdDem=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,d)=>s+d[h],0));
-  const wdShifts=wfmOptimize(wdDem,8,21,8,4);
-  wfmRenderGantt('wfm-gantt-wd',wdShifts,wdDem);
-  wfmRenderTable('wfm-sched-wd',wdShifts);
+  const wdDemChat=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,dd)=>s+Math.round(dd[h]*(dh[0+0]>0||true?1:1)),0));
+  const wdDemCo=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,dd)=>s+dd[h],0));
+  // Separar por canal en ventana reciente
+  const wdChatHV={},wdCoHV={};
+  WFM_OPH.forEach(h=>{wdChatHV[h]=0;wdCoHV[h]=0;});
+  recent.filter(t=>t.fc instanceof Date).forEach(t=>{
+    const h=t.fc.getHours();
+    if(h<8||h>20)return;
+    if(t.canal==='Correo')wdCoHV[h]++;
+    else wdChatHV[h]++;
+  });
+  const chatDem=WFM_OPH.map(h=>wdChatHV[h]);
+  const coDem=WFM_OPH.map(h=>wdCoHV[h]);
+  const sugChat=wfmOptimize(chatDem,8,21,8,2);
+  const sugCo=wfmOptimize(coDem,8,21,8,2);
 
   // ── KPIs ──
-  const peakH=WFM_OPH.reduce((b,h)=>(hv[h].Web+hv[h].WhatsApp+hv[h].Correo)>(hv[b].Web+hv[b].WhatsApp+hv[b].Correo)?h:b,WFM_OPH[0]);
-  const peakTot=hv[peakH].Web+hv[peakH].WhatsApp+hv[peakH].Correo;
+  const peakH=WFM_OPH.reduce((b,h)=>(_wfmHV[h].chat+_wfmHV[h].correo)>(_wfmHV[b].chat+_wfmHV[b].correo)?h:b,WFM_OPH[0]);
+  const peakTot=_wfmHV[peakH].chat+_wfmHV[peakH].correo;
   const dowTot=WFM_DOW.map((_,di)=>WFM_OPH.reduce((s,h)=>s+dh[di][h],0));
   const peakDi=dowTot.indexOf(Math.max(...dowTot));
-  const covH=WFM_OPH.filter(h=>wdShifts.some(s=>h>=s.start&&h<s.end)).length;
   document.getElementById('wfm-cards').innerHTML=
     sCard('Hora pico',`${peakH}:00`,`${peakTot} casos acumulados`,'tr-n','fas fa-fire','ic-r',null)+
     sCard('Día más activo',WFM_DOW[peakDi],`${dowTot[peakDi]} casos`,'tr-n','fas fa-calendar-day','ic-a',null)+
-    sCard('Cobertura Lun-Vie',`${Math.round(covH/WFM_OPH.length*100)}%`,`${wdShifts.length} agentes · ${WFM_OPH.length}h operativas`,covH>=WFM_OPH.length*.8?'tr-up':'tr-dn','fas fa-user-clock','ic-v',null)+
-    sCard('Turnos','8 h continuas','Lun–Vie · 2 breaks 15 min','tr-n','fas fa-clock','ic-g',null);
+    sCard('Agentes Chat','2 agentes','Web + WhatsApp · máx 5 simultáneos','tr-n','fas fa-comments','ic-v',null)+
+    sCard('Agentes Correo','2 agentes','Correo · 1 caso por agente','tr-n','fas fa-envelope','ic-g',null);
 
-  // ── Erlang C ──
-  const ahtSec=(parseFloat(document.getElementById('wfm-aht')?.value)||20)*60;
-  const slTarget=(parseFloat(document.getElementById('wfm-sl')?.value)||80)/100;
-  const slTimeSec=parseFloat(document.getElementById('wfm-slt')?.value)||60;
-  const nAvail=parseInt(document.getElementById('wfm-nagents')?.value)||4;
+  // ── Horario sugerido ──
+  wfmRenderGanttSug('wfm-gantt-chat-sug',sugChat,'#7C3AED','#EDE9FE');
+  wfmRenderGanttSug('wfm-gantt-co-sug',sugCo,'#4F46E5','#E0E7FF');
+  const fmtH=h=>{const p=h>=12?'pm':'am',h12=h>12?h-12:h===0?12:h;return`${h12}:00 ${p}`;};
+  const fmtBrk=h=>`${fmtH(h)}–${h>=13?`${h-12}:15 pm`:h===12?'12:15 pm':`${h}:15 ${h>=12?'pm':'am'}`}`;
+  document.getElementById('wfm-sched-sug').innerHTML=[
+    ...sugChat.map((s,i)=>`<tr><td><span style="background:#F5F3FF;color:#5B21B6;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600">Chat</span></td><td>Ag. Chat ${i+1}</td><td style="color:#059669;font-weight:600">${fmtH(s.start)}</td><td style="color:#DC2626;font-weight:600">${fmtH(s.end)}</td><td><span style="background:#FEF3C7;color:#92400E;border-radius:5px;padding:2px 7px;font-size:11px">${fmtBrk(s.breakAm)}</span></td><td><span style="background:#FEF3C7;color:#92400E;border-radius:5px;padding:2px 7px;font-size:11px">${fmtBrk(s.breakPm)}</span></td></tr>`),
+    ...sugCo.map((s,i)=>`<tr><td><span style="background:#EEF2FF;color:#3730A3;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600">Correo</span></td><td>Ag. Correo ${i+1}</td><td style="color:#059669;font-weight:600">${fmtH(s.start)}</td><td style="color:#DC2626;font-weight:600">${fmtH(s.end)}</td><td><span style="background:#FEF3C7;color:#92400E;border-radius:5px;padding:2px 7px;font-size:11px">${fmtBrk(s.breakAm)}</span></td><td><span style="background:#FEF3C7;color:#92400E;border-radius:5px;padding:2px 7px;font-size:11px">${fmtBrk(s.breakPm)}</span></td></tr>`)
+  ].join('');
 
-  const erlRows=WFM_OPH.map(h=>{
-    const vol=hv[h].Web+hv[h].WhatsApp+hv[h].Correo;
-    const A=vol*ahtSec/3600; // Erlangs
-    const nReq=erlangN(A,ahtSec,slTimeSec,slTarget);
-    const slActual=erlangSL(A,nAvail,ahtSec,slTimeSec);
-    const gap=nReq-nAvail;
-    return{h,vol,A,nReq,nAvail,slActual,gap};
-  });
+  // ── Inicializar horario real si vacío ──
+  if(!_wfmSched.length){
+    const saved=d.wfmSchedule||[];
+    if(saved.length){
+      _wfmSched=saved;
+    } else {
+      _wfmSched=[
+        ...sugChat.map((s,i)=>({canal:'Chat',agente:_wfmAgents[i]||`Agente Chat ${i+1}`,...s})),
+        ...sugCo.map((s,i)=>({canal:'Correo',agente:_wfmAgents[sugChat.length+i]||`Agente Correo ${i+1}`,...s})),
+      ];
+    }
+  }
 
-  // Gráfico Erlang
-  mk('wfm-erlang-chart',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
-    {type:'bar',label:'Volumen',data:erlRows.map(r=>r.vol),backgroundColor:erlRows.map(r=>r.gap>0?'rgba(239,68,68,.25)':'rgba(124,58,237,.2)'),borderRadius:3,yAxisID:'y2'},
-    {type:'line',label:'Ag. requeridos',data:erlRows.map(r=>r.nReq),borderColor:'#7C3AED',backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:erlRows.map(r=>r.gap>0?'#EF4444':'#7C3AED'),tension:.3,yAxisID:'y'},
-    {type:'line',label:`Disponibles (${nAvail})`,data:erlRows.map(()=>nAvail),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,borderDash:[6,4],pointRadius:0,yAxisID:'y'},
-  ]},options:{...GO,scales:{
-    x:{grid:{display:false},ticks:{font:{size:10}}},
-    y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},stepSize:1},title:{display:true,text:'Agentes',font:{size:10}}},
-    y2:{position:'right',grid:{display:false},ticks:{font:{size:10}},title:{display:true,text:'Volumen',font:{size:10}}},
-  }}});
-
-  // Tabla Erlang
-  document.getElementById('wfm-erlang-tbody').innerHTML=erlRows.map(r=>{
-    const slPct=Math.round(r.slActual*100);
-    const slColor=slPct>=80?'#059669':slPct>=60?'#D97706':'#DC2626';
-    const gapColor=r.gap>0?'#DC2626':r.gap===0?'#9CA3AF':'#059669';
-    const gapTxt=r.gap>0?`+${r.gap} faltan`:r.gap===0?'OK':`${Math.abs(r.gap)} sobran`;
-    return`<tr>
-      <td><strong>${r.h}:00</strong></td>
-      <td>${r.vol}</td>
-      <td style="color:#6B7280">${r.A.toFixed(2)} E</td>
-      <td style="font-weight:700;color:${r.gap>0?'#DC2626':'#374151'}">${r.nReq}</td>
-      <td>${r.nAvail}</td>
-      <td style="font-weight:700;color:${slColor}">${r.vol===0?'—':slPct+'%'}</td>
-      <td><span style="background:${r.gap>0?'#FEE2E2':r.gap===0?'#F3F4F6':'#D1FAE5'};color:${gapColor};border-radius:6px;padding:2px 9px;font-size:11px;font-weight:600">${r.vol===0?'—':gapTxt}</span></td>
-    </tr>`;
-  }).join('');
+  wfmRenderRealTable();
+  wfmRefreshRealGantts();
+  wfmRefreshErlang();
 }
 
 // ── Erlang C ──────────────────────────────
 function erlangC(A,N){
-  // Probabilidad de espera (Erlang C)
   if(A<=0)return 0;
   if(N<=0||A>=N)return 1;
   let sum=1,term=1;
@@ -1696,25 +1738,104 @@ function erlangC(A,N){
   return num/(sum+num);
 }
 function erlangSL(A,N,ahtSec,tSec){
-  // Service Level: % atendidos en tSec segundos
   if(A<=0)return 1;
   if(N<=0||A>=N)return 0;
   return Math.max(0,Math.min(1,1-erlangC(A,N)*Math.exp(-(N-A)*tSec/ahtSec)));
 }
 function erlangN(A,ahtSec,tSec,slTarget){
-  // Mínimo de agentes para alcanzar slTarget
   if(A<=0)return 1;
   let N=Math.max(1,Math.ceil(A)+1);
-  while(N<=40){if(erlangSL(A,N,ahtSec,tSec)>=slTarget)return N;N++;}
+  while(N<=60){if(erlangSL(A,N,ahtSec,tSec)>=slTarget)return N;N++;}
   return N;
 }
 
+// Agentes de un canal activos en hora h (sin contar hora de break)
+function wfmAgentsAtHour(canal,h){
+  return _wfmSched.filter(s=>s.canal===canal&&h>=s.start&&h<s.end&&h!==s.breakAm&&h!==s.breakPm).length;
+}
+
+function wfmRefreshErlang(){
+  if(!Object.keys(_wfmHV).length)return;
+  // Chat
+  const ahtChat=(parseFloat(document.getElementById('wfm-aht-chat')?.value)||20)*60;
+  const slChat=(parseFloat(document.getElementById('wfm-sl-chat')?.value)||80)/100;
+  const sltChat=parseFloat(document.getElementById('wfm-slt-chat')?.value)||60;
+  const chatRows=WFM_OPH.map(h=>{
+    const vol=_wfmHV[h].chat;
+    const A=vol*ahtChat/3600;
+    const agAvail=wfmAgentsAtHour('Chat',h);
+    const Neff=agAvail*WFM_CONC; // capacidad efectiva (servidores virtuales)
+    const nReqServers=erlangN(A,ahtChat,sltChat,slChat);
+    const nReqAgents=Math.ceil(nReqServers/WFM_CONC);
+    const slActual=erlangSL(A,Neff,ahtChat,sltChat);
+    return{h,vol,A,agAvail,Neff,nReqAgents,slActual,gap:nReqAgents-agAvail};
+  });
+  const maxChatVol=Math.max(1,...chatRows.map(r=>r.vol));
+  mk('wfm-erlang-chat',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
+    {type:'bar',label:'Vol Chat',data:chatRows.map(r=>r.vol),backgroundColor:chatRows.map(r=>r.gap>0?'rgba(239,68,68,.25)':'rgba(124,58,237,.2)'),borderRadius:3,yAxisID:'y2'},
+    {type:'line',label:'Ag. requeridos',data:chatRows.map(r=>r.nReqAgents),borderColor:'#7C3AED',backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:chatRows.map(r=>r.gap>0?'#EF4444':'#7C3AED'),tension:.3,yAxisID:'y'},
+    {type:'line',label:'Ag. disponibles',data:chatRows.map(r=>r.agAvail),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,borderDash:[6,4],pointRadius:3,yAxisID:'y'},
+  ]},options:{...GO,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},stepSize:1},title:{display:true,text:'Agentes',font:{size:10}}},
+    y2:{position:'right',grid:{display:false},ticks:{font:{size:10}},title:{display:true,text:'Volumen',font:{size:10}}},
+  }}});
+  document.getElementById('wfm-erlang-chat-tbody').innerHTML=chatRows.map(r=>{
+    const slPct=Math.round(r.slActual*100);
+    const slCol=slPct>=80?'#059669':slPct>=60?'#D97706':'#DC2626';
+    const gCol=r.gap>0?'#DC2626':r.gap===0?'#9CA3AF':'#059669';
+    const gTxt=r.gap>0?`+${r.gap} faltan`:r.gap===0?'OK':`${Math.abs(r.gap)} sobran`;
+    return`<tr>
+      <td><strong>${r.h}:00</strong></td><td>${r.vol}</td>
+      <td style="color:#6B7280">${r.A.toFixed(2)} E</td>
+      <td>${r.agAvail} ag. × ${WFM_CONC} = <strong>${r.Neff}</strong></td>
+      <td style="font-weight:700;color:${r.gap>0?'#DC2626':'#374151'}">${r.nReqAgents}</td>
+      <td style="font-weight:700;color:${slCol}">${r.vol===0?'—':slPct+'%'}</td>
+      <td><span style="background:${r.gap>0?'#FEE2E2':r.gap===0?'#F3F4F6':'#D1FAE5'};color:${gCol};border-radius:6px;padding:2px 9px;font-size:11px;font-weight:600">${r.vol===0?'—':gTxt}</span></td>
+    </tr>`;
+  }).join('');
+
+  // Correo
+  const ahtCo=(parseFloat(document.getElementById('wfm-aht-co')?.value)||30)*60;
+  const slCo=(parseFloat(document.getElementById('wfm-sl-co')?.value)||80)/100;
+  const sltCo=parseFloat(document.getElementById('wfm-slt-co')?.value)||900;
+  const coRows=WFM_OPH.map(h=>{
+    const vol=_wfmHV[h].correo;
+    const A=vol*ahtCo/3600;
+    const agAvail=wfmAgentsAtHour('Correo',h);
+    const nReq=erlangN(A,ahtCo,sltCo,slCo);
+    const slActual=erlangSL(A,agAvail,ahtCo,sltCo);
+    return{h,vol,A,agAvail,nReq,slActual,gap:nReq-agAvail};
+  });
+  mk('wfm-erlang-co',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
+    {type:'bar',label:'Vol Correo',data:coRows.map(r=>r.vol),backgroundColor:coRows.map(r=>r.gap>0?'rgba(239,68,68,.25)':'rgba(79,70,229,.2)'),borderRadius:3,yAxisID:'y2'},
+    {type:'line',label:'Ag. requeridos',data:coRows.map(r=>r.nReq),borderColor:'#4F46E5',backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:coRows.map(r=>r.gap>0?'#EF4444':'#4F46E5'),tension:.3,yAxisID:'y'},
+    {type:'line',label:'Ag. disponibles',data:coRows.map(r=>r.agAvail),borderColor:'#10B981',backgroundColor:'transparent',borderWidth:2,borderDash:[6,4],pointRadius:3,yAxisID:'y'},
+  ]},options:{...GO,scales:{
+    x:{grid:{display:false},ticks:{font:{size:10}}},
+    y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},stepSize:1},title:{display:true,text:'Agentes',font:{size:10}}},
+    y2:{position:'right',grid:{display:false},ticks:{font:{size:10}},title:{display:true,text:'Volumen',font:{size:10}}},
+  }}});
+  document.getElementById('wfm-erlang-co-tbody').innerHTML=coRows.map(r=>{
+    const slPct=Math.round(r.slActual*100);
+    const slCol=slPct>=80?'#059669':slPct>=60?'#D97706':'#DC2626';
+    const gCol=r.gap>0?'#DC2626':r.gap===0?'#9CA3AF':'#059669';
+    const gTxt=r.gap>0?`+${r.gap} faltan`:r.gap===0?'OK':`${Math.abs(r.gap)} sobran`;
+    return`<tr>
+      <td><strong>${r.h}:00</strong></td><td>${r.vol}</td>
+      <td style="color:#6B7280">${r.A.toFixed(2)} E</td>
+      <td style="font-weight:700;color:${r.gap>0?'#DC2626':'#374151'}">${r.agAvail}</td>
+      <td style="font-weight:700;color:${r.gap>0?'#DC2626':'#374151'}">${r.nReq}</td>
+      <td style="font-weight:700;color:${slCol}">${r.vol===0?'—':slPct+'%'}</td>
+      <td><span style="background:${r.gap>0?'#FEE2E2':r.gap===0?'#F3F4F6':'#D1FAE5'};color:${gCol};border-radius:6px;padding:2px 9px;font-size:11px;font-weight:600">${r.vol===0?'—':gTxt}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 function wfmOptimize(demand,opStart,opEnd,shiftLen,nAgents){
-  // demand[i] = volumen en hora (opStart + i)
   const possible=[];
   for(let s=opStart;s+shiftLen<=opEnd;s++)possible.push(s);
-  const rem=[...demand];
-  const starts=[];
+  const rem=[...demand];const starts=[];
   for(let i=0;i<nAgents;i++){
     let best=possible[0],bestScore=-Infinity;
     for(const s of possible){
@@ -1732,30 +1853,29 @@ function wfmOptimize(demand,opStart,opEnd,shiftLen,nAgents){
   });
 }
 
-function wfmRenderGantt(id,shifts,demand){
-  const agN=['Agente 1','Agente 2','Agente 3','Agente 4'];
-  const cov=WFM_OPH.map(h=>shifts.filter(s=>h>=s.start&&h<s.end).length);
+function wfmRenderGanttSug(id,shifts,color,borderColor){
+  const cov=WFM_OPH.map(h=>shifts.filter(s=>h>=s.start&&h<s.end&&h!==s.breakAm&&h!==s.breakPm).length);
   document.getElementById(id).innerHTML=`
     <table style="width:100%;border-collapse:collapse;font-size:10px">
       <thead><tr>
-        <th style="width:76px;text-align:left;padding:3px 6px;color:#9CA3AF">Agente</th>
+        <th style="width:80px;text-align:left;padding:3px 6px;color:#9CA3AF">Agente</th>
         ${WFM_OPH.map(h=>`<th style="text-align:center;padding:3px 2px;color:#9CA3AF;min-width:40px">${h}h</th>`).join('')}
       </tr></thead>
       <tbody>
         ${shifts.map((s,i)=>`<tr>
-          <td style="padding:3px 6px;font-size:11px;font-weight:600;color:#374151">${agN[i]||'Ag.'+(i+1)}</td>
+          <td style="padding:3px 6px;font-size:11px;font-weight:600;color:#374151">Ag. ${i+1}</td>
           ${WFM_OPH.map(h=>{
             const on=h>=s.start&&h<s.end,bk=on&&(h===s.breakAm||h===s.breakPm);
             if(!on)return`<td style="background:#F9FAFB;border:1px solid #F3F4F6;padding:6px 2px"></td>`;
             if(bk)return`<td style="background:#FEF3C7;border:1px solid #FDE68A;text-align:center;color:#92400E;font-size:12px" title="Break 15 min">☕</td>`;
-            return`<td style="background:rgba(124,58,237,.14);border:1px solid #EDE9FE;text-align:center;color:#5B21B6;font-size:10px">▪</td>`;
+            return`<td style="background:${color}22;border:1px solid ${borderColor};text-align:center;color:${color};font-size:10px">▪</td>`;
           }).join('')}
         </tr>`).join('')}
-        <tr style="border-top:2px solid #EDE9FE">
-          <td style="padding:3px 6px;font-size:10px;color:#9CA3AF;font-weight:600">Cobertura</td>
+        <tr style="border-top:2px solid ${borderColor}">
+          <td style="padding:3px 6px;font-size:10px;color:#9CA3AF;font-weight:600">Cob.</td>
           ${cov.map(n=>{
-            const bg=n===0?'#F9FAFB':n>=3?'rgba(16,185,129,.2)':n>=2?'rgba(245,158,11,.15)':'rgba(239,68,68,.1)';
-            const col=n===0?'#D1D5DB':n>=3?'#065F46':n>=2?'#92400E':'#991B1B';
+            const bg=n===0?'#F9FAFB':n>=2?'rgba(16,185,129,.2)':'rgba(245,158,11,.15)';
+            const col=n===0?'#D1D5DB':n>=2?'#065F46':'#92400E';
             return`<td style="background:${bg};border:1px solid #F3F4F6;text-align:center;padding:4px 2px;font-weight:700;color:${col};font-size:11px">${n||'—'}</td>`;
           }).join('')}
         </tr>
@@ -1763,18 +1883,96 @@ function wfmRenderGantt(id,shifts,demand){
     </table>`;
 }
 
-function wfmRenderTable(id,shifts){
-  const agN=['Agente 1','Agente 2','Agente 3','Agente 4'];
-  const fmtH=h=>{const p=h>=12?'pm':'am',h12=h>12?h-12:h===0?12:h;return`${h12}:00 ${p}`;};
-  const fmtBrk=h=>`${fmtH(h)} – ${h===12?'12:15 pm':h>=13?`${h-12}:15 pm`:h===12?'12:15 pm':`${h}:15 ${h>=12?'pm':'am'}`}`;
-  document.getElementById(id).innerHTML=shifts.map((s,i)=>`
-    <tr>
-      <td><strong>${agN[i]||'Agente '+(i+1)}</strong></td>
-      <td style="color:#059669;font-weight:600">${fmtH(s.start)}</td>
-      <td style="color:#DC2626;font-weight:600">${fmtH(s.end)}</td>
-      <td><span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600">${fmtBrk(s.breakAm)}</span></td>
-      <td><span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600">${fmtBrk(s.breakPm)}</span></td>
-    </tr>`).join('');
+function wfmRenderGanttReal(id,canal,color,borderColor){
+  const shifts=_wfmSched.filter(s=>s.canal===canal);
+  const cov=WFM_OPH.map(h=>shifts.filter(s=>h>=s.start&&h<s.end&&h!==s.breakAm&&h!==s.breakPm).length);
+  document.getElementById(id).innerHTML=`
+    <table style="width:100%;border-collapse:collapse;font-size:10px">
+      <thead><tr>
+        <th style="width:110px;text-align:left;padding:3px 6px;color:#9CA3AF">Agente</th>
+        ${WFM_OPH.map(h=>`<th style="text-align:center;padding:3px 2px;color:#9CA3AF;min-width:40px">${h}h</th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${shifts.map(s=>`<tr>
+          <td style="padding:3px 6px;font-size:11px;font-weight:600;color:#374151;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${s.agente}">${s.agente||'—'}</td>
+          ${WFM_OPH.map(h=>{
+            const on=h>=s.start&&h<s.end,bk=on&&(h===s.breakAm||h===s.breakPm);
+            if(!on)return`<td style="background:#F9FAFB;border:1px solid #F3F4F6;padding:6px 2px"></td>`;
+            if(bk)return`<td style="background:#FEF3C7;border:1px solid #FDE68A;text-align:center;color:#92400E;font-size:12px" title="Break 15 min">☕</td>`;
+            return`<td style="background:${color}22;border:1px solid ${borderColor};text-align:center;color:${color};font-size:10px">▪</td>`;
+          }).join('')}
+        </tr>`).join('')}
+        <tr style="border-top:2px solid ${borderColor}">
+          <td style="padding:3px 6px;font-size:10px;color:#9CA3AF;font-weight:600">Cob.</td>
+          ${cov.map(n=>{
+            const bg=n===0?'#F9FAFB':n>=2?'rgba(16,185,129,.2)':'rgba(245,158,11,.15)';
+            const col=n===0?'#D1D5DB':n>=2?'#065F46':'#92400E';
+            return`<td style="background:${bg};border:1px solid #F3F4F6;text-align:center;padding:4px 2px;font-weight:700;color:${col};font-size:11px">${n||'—'}</td>`;
+          }).join('')}
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+function wfmRefreshRealGantts(){
+  wfmRenderGanttReal('wfm-gantt-chat-real','Chat','#0EA5E9','#BAE6FD');
+  wfmRenderGanttReal('wfm-gantt-co-real','Correo','#0369A1','#BFDBFE');
+}
+
+function wfmRenderRealTable(){
+  const selStyle='padding:3px 6px;border:1px solid #EDE9FE;border-radius:5px;font-size:11px;outline:none;max-width:120px';
+  const numStyle='width:52px;padding:3px 5px;border:1px solid #EDE9FE;border-radius:5px;font-size:11px;outline:none;text-align:center';
+  const hrs=Array.from({length:14},(_,i)=>i+8); // 8..21
+  const hOpt=h=>`<option value="${h}">${h}:00</option>`;
+  document.getElementById('wfm-real-tbody').innerHTML=_wfmSched.map((s,i)=>{
+    const agOpts=_wfmAgents.map(a=>`<option value="${a}"${a===s.agente?' selected':''}>${a}</option>`).join('');
+    const hOpts=hrs.map(h=>`<option value="${h}"${h===s.start?' selected':''}>${h}:00</option>`).join('');
+    const endOpts=hrs.map(h=>`<option value="${h}"${h===s.end?' selected':''}>${h}:00</option>`).join('');
+    const brAmOpts=hrs.map(h=>`<option value="${h}"${h===s.breakAm?' selected':''}>${h}:00</option>`).join('');
+    const brPmOpts=hrs.map(h=>`<option value="${h}"${h===s.breakPm?' selected':''}>${h}:00</option>`).join('');
+    const canalBadge=s.canal==='Chat'
+      ?`<span style="background:#F5F3FF;color:#5B21B6;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600">Chat</span>`
+      :`<span style="background:#EEF2FF;color:#3730A3;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:600">Correo</span>`;
+    return`<tr>
+      <td>${canalBadge}</td>
+      <td><select style="${selStyle}" onchange="wfmLiveEdit(${i},'agente',this.value)">${agOpts}</select></td>
+      <td><select style="${selStyle}" onchange="wfmLiveEditTime(${i},'start',this.value)">${hOpts}</select></td>
+      <td><select style="${selStyle}" onchange="wfmLiveEditTime(${i},'end',this.value)">${endOpts}</select></td>
+      <td><select style="${selStyle}" onchange="wfmLiveEdit(${i},'breakAm',+this.value)">${brAmOpts}</select></td>
+      <td><select style="${selStyle}" onchange="wfmLiveEdit(${i},'breakPm',+this.value)">${brPmOpts}</select></td>
+    </tr>`;
+  }).join('');
+}
+
+function wfmLiveEdit(idx,field,val){
+  _wfmSched[idx][field]=val;
+  wfmRefreshRealGantts();
+  wfmRefreshErlang();
+}
+
+function wfmLiveEditTime(idx,field,val){
+  _wfmSched[idx][field]=parseInt(val);
+  // Recalcular end = start + 8 si se cambió start
+  if(field==='start'){_wfmSched[idx].end=_wfmSched[idx].start+8;}
+  wfmRenderRealTable(); // re-render para reflejar end actualizado
+  wfmRefreshRealGantts();
+  wfmRefreshErlang();
+}
+
+async function wfmSaveSchedule(){
+  if(!window._dashData)return;
+  window._dashData.wfmSchedule=_wfmSched;
+  const btn=document.querySelector('[onclick="wfmSaveSchedule()"]');
+  if(btn){btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Guardando…';}
+  try{
+    await saveToGitHub();
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-check"></i> Guardado';}
+    setTimeout(()=>{if(btn)btn.innerHTML='<i class="fas fa-save"></i> Guardar horario';},2500);
+  }catch(e){
+    console.error('wfmSaveSchedule',e);
+    if(btn){btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> Guardar horario';}
+    alert('Error al guardar. Revisa la consola.');
+  }
 }
 
 // ── Alertas — casos abiertos >12h ────────
