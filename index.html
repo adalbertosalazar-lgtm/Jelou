@@ -138,6 +138,7 @@ canvas{cursor:pointer}
     <div class="ni" id="nav-ia" onclick="setView('ia')"><i class="fas fa-robot"></i>Agente IA</div>
     <div class="nav-lbl" style="margin-top:10px">Análisis</div>
     <div class="ni" id="nav-sla" onclick="setView('sla')"><i class="fas fa-exclamation-triangle"></i>Análisis SLA</div>
+    <div class="ni" id="nav-wfm" onclick="setView('wfm')"><i class="fas fa-user-clock"></i>Workforce</div>
     <div class="ni" id="nav-alrt" onclick="setView('alrt')" style="color:#EF4444"><i class="fas fa-bell" style="color:#EF4444"></i>Alertas <span id="alrt-badge" style="background:#EF4444;color:#fff;border-radius:20px;font-size:10px;padding:1px 7px;margin-left:4px;display:none"></span></div>
   </nav>
   <div class="ni" id="nav-icp" onclick="setView('icp')"><i class="fas fa-users"></i>ICP</div>
@@ -367,6 +368,54 @@ canvas{cursor:pointer}
     </div>
   </div>
 
+
+  <!-- Workforce -->
+  <div id="pane-wfm" class="pane">
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;color:#6B7280;font-weight:500">Período:</span>
+      <select id="wfm-month-sel" onchange="_wfmMonth=this.value;if(window._dashData)renderWFM(window._dashData)" style="padding:5px 10px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer"></select>
+    </div>
+    <div class="row g-3 mb-3" id="wfm-cards"></div>
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-chart-bar me-2" style="color:#7C3AED"></i>Volumen por hora y canal</div><div class="cc-sub">Casos recibidos por franja horaria en horario operativo (8:00–21:00)</div></div></div>
+        <canvas id="wfm-vol-hora" height="75"></canvas>
+      </div></div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-th me-2" style="color:#7C3AED"></i>Distribución por día y hora</div><div class="cc-sub">Intensidad de casos — escala de color por volumen relativo</div></div></div>
+        <div style="overflow-x:auto;margin-top:8px" id="wfm-heatmap"></div>
+      </div></div>
+    </div>
+    <div class="row g-3 mb-3">
+      <div class="col-12"><div class="cc">
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-calendar-alt me-2" style="color:#7C3AED"></i>Horario sugerido — Lunes a Viernes</div><div class="cc-sub">Calculado sobre la semana previa · 4 agentes · turnos 8h · 2 breaks de 15 min · ☕ = break</div></div></div>
+        <div style="overflow-x:auto;margin-top:12px" id="wfm-gantt-wd"></div>
+        <div style="overflow-x:auto;margin-top:12px"><table class="dt"><thead><tr><th>Agente</th><th>Entrada</th><th>Salida</th><th>Break AM</th><th>Break PM</th></tr></thead><tbody id="wfm-sched-wd"></tbody></table></div>
+      </div></div>
+    </div>
+    <div class="cc" style="border-left:4px solid #7C3AED">
+      <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-file-contract me-2" style="color:#7C3AED"></i>Referencia SLA</div></div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:10px">
+        <div style="background:#F5F3FF;border-radius:8px;padding:10px 14px">
+          <div style="font-weight:700;color:#5B21B6;margin-bottom:4px;font-size:12px"><i class="fab fa-whatsapp me-1"></i>WhatsApp / Plataforma</div>
+          <div style="font-size:12px;color:#374151">Primera respuesta: <strong>&lt;15 min</strong></div>
+          <div style="font-size:12px;color:#374151">Resolución total: <strong>&lt;6 horas</strong></div>
+        </div>
+        <div style="background:#EFF6FF;border-radius:8px;padding:10px 14px">
+          <div style="font-weight:700;color:#1D4ED8;margin-bottom:4px;font-size:12px"><i class="fas fa-envelope me-1"></i>Correo</div>
+          <div style="font-size:12px;color:#374151">Primera respuesta: <strong>&lt;24 horas</strong></div>
+          <div style="font-size:12px;color:#374151">Resolución total: <strong>&lt;48 horas</strong></div>
+        </div>
+        <div style="background:#F0FDF4;border-radius:8px;padding:10px 14px">
+          <div style="font-weight:700;color:#065F46;margin-bottom:4px;font-size:12px"><i class="fas fa-calendar-week me-1"></i>Horario operativo</div>
+          <div style="font-size:12px;color:#374151">Lun–Vie: <strong>8:00 am – 9:00 pm</strong></div>
+          <div style="font-size:12px;color:#374151">Sáb–Dom: <strong>9:00 am – 4:00 pm</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Alertas -->
   <div id="pane-alrt" class="pane">
@@ -669,6 +718,7 @@ function render(data,savedAt){
   try{renderG(data);}catch(e){console.error('renderG',e);}
   try{renderO(data);}catch(e){console.error('renderO',e);}
   try{renderAlrt(data);}catch(e){console.error('renderAlrt',e);}
+  try{renderWFM(data);}catch(e){console.error('renderWFM',e);}
   setView(currentView);
 }
 
@@ -1144,17 +1194,17 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d','ch','co','ia','sla','glos','icp','alrt'].forEach(x=>{
+  ['g','o','d','ch','co','ia','sla','glos','icp','alrt','wfm'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  ['ch','co','ia','sla','glos','icp','alrt'].forEach(x=>{
+  ['ch','co','ia','sla','glos','icp','alrt','wfm'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
   document.getElementById('btn-informar').style.display=v==='alrt'?'inline':'none';
-  const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente',alrt:'Alertas — Casos críticos'};
+  const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente',alrt:'Alertas — Casos críticos',wfm:'Workforce — Planificación'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
@@ -1162,6 +1212,7 @@ function setView(v){
   if(v==='sla'&&window._dashData) renderSLA(window._dashData);
   if(v==='icp'&&window._dashData) renderICP(window._dashData);
   if(v==='alrt'&&window._dashData){try{renderAlrt(window._dashData);}catch(e){console.error('renderAlrt',e);}}
+  if(v==='wfm'&&window._dashData){try{renderWFM(window._dashData);}catch(e){console.error('renderWFM',e);}}
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
@@ -1487,6 +1538,153 @@ function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Workforce Management ─────────────────
+let _wfmMonth='all';
+const WFM_OPH=Array.from({length:13},(_,i)=>i+8); // horas 8..20
+const WFM_DOW=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const WFM_DOWMAP={1:0,2:1,3:2,4:3,5:4,6:5,0:6}; // getDay() → índice display
+
+function renderWFM(d){
+  const{tickets}=d;
+  // Poblar selector de mes
+  const allM=[...new Set(tickets.map(t=>t.mLbl).filter(Boolean))].sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b));
+  const sel=document.getElementById('wfm-month-sel');
+  sel.innerHTML='<option value="all">Todos los meses</option>'+allM.map(m=>`<option value="${m}"${m===_wfmMonth?' selected':''}>${m}</option>`).join('');
+
+  const tix=_wfmMonth==='all'?tickets:tickets.filter(t=>t.mLbl===_wfmMonth);
+
+  // ── Volumen por hora y canal ──
+  const hv={};WFM_OPH.forEach(h=>hv[h]={Web:0,WhatsApp:0,Correo:0});
+  tix.forEach(t=>{
+    if(!(t.fc instanceof Date))return;
+    const h=t.fc.getHours();
+    if(h>=8&&h<=20){const c=t.canal==='WhatsApp'?'WhatsApp':t.canal==='Correo'?'Correo':'Web';hv[h][c]++;}
+  });
+  mk('wfm-vol-hora',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
+    {label:'Chat Web',data:WFM_OPH.map(h=>hv[h].Web),backgroundColor:'rgba(124,58,237,.75)',borderRadius:3,stack:'s'},
+    {label:'WhatsApp',data:WFM_OPH.map(h=>hv[h].WhatsApp),backgroundColor:'rgba(16,185,129,.75)',borderRadius:3,stack:'s'},
+    {label:'Correo',data:WFM_OPH.map(h=>hv[h].Correo),backgroundColor:'rgba(79,70,229,.75)',borderRadius:3,stack:'s'},
+  ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}}}});
+
+  // ── Heatmap día × hora ──
+  const dh=Array.from({length:7},()=>new Array(21).fill(0));
+  tix.forEach(t=>{
+    if(!(t.fc instanceof Date))return;
+    const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
+    if(h>=8&&h<=20)dh[di][h]++;
+  });
+  const maxCell=Math.max(1,...dh.flat());
+  document.getElementById('wfm-heatmap').innerHTML=`
+    <table class="hm-table" style="font-size:10px">
+      <thead><tr><th style="min-width:38px"></th>${WFM_OPH.map(h=>`<th style="text-align:center">${h}h</th>`).join('')}</tr></thead>
+      <tbody>${WFM_DOW.map((day,di)=>`
+        <tr><td class="hm-agent">${day}</td>${WFM_OPH.map(h=>{
+          const v=dh[di][h],p=v/maxCell;
+          const bg=v===0?'#F9FAFB':`rgba(124,58,237,${(0.1+p*0.8).toFixed(2)})`;
+          const col=p>0.5?'#fff':'#374151';
+          return`<td style="background:${bg};color:${col};text-align:center;padding:5px 2px;min-width:40px">${v||''}</td>`;
+        }).join('')}</tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  // ── Horario sugerido (semana previa) ──
+  const maxDate=tix.reduce((m,t)=>t.fc instanceof Date&&t.fc>m?t.fc:m,new Date(0));
+  const weekAgo=new Date(maxDate.getTime()-7*24*3600000);
+  const recent=tix.filter(t=>t.fc instanceof Date&&t.fc>=weekAgo).length>=10
+    ?tix.filter(t=>t.fc instanceof Date&&t.fc>=weekAgo):tix;
+  const wkDH=Array.from({length:7},()=>new Array(21).fill(0));
+  recent.forEach(t=>{
+    if(!(t.fc instanceof Date))return;
+    const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
+    if(h>=8&&h<=20)wkDH[di][h]++;
+  });
+  // Demanda ponderada Lun-Vie por hora
+  const wdDem=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,d)=>s+d[h],0));
+  const wdShifts=wfmOptimize(wdDem,8,21,8,4);
+  wfmRenderGantt('wfm-gantt-wd',wdShifts,wdDem);
+  wfmRenderTable('wfm-sched-wd',wdShifts);
+
+  // ── KPIs ──
+  const peakH=WFM_OPH.reduce((b,h)=>(hv[h].Web+hv[h].WhatsApp+hv[h].Correo)>(hv[b].Web+hv[b].WhatsApp+hv[b].Correo)?h:b,WFM_OPH[0]);
+  const peakTot=hv[peakH].Web+hv[peakH].WhatsApp+hv[peakH].Correo;
+  const dowTot=WFM_DOW.map((_,di)=>WFM_OPH.reduce((s,h)=>s+dh[di][h],0));
+  const peakDi=dowTot.indexOf(Math.max(...dowTot));
+  const covH=WFM_OPH.filter(h=>wdShifts.some(s=>h>=s.start&&h<s.end)).length;
+  document.getElementById('wfm-cards').innerHTML=
+    sCard('Hora pico',`${peakH}:00`,`${peakTot} casos acumulados`,'tr-n','fas fa-fire','ic-r',null)+
+    sCard('Día más activo',WFM_DOW[peakDi],`${dowTot[peakDi]} casos`,'tr-n','fas fa-calendar-day','ic-a',null)+
+    sCard('Cobertura Lun-Vie',`${Math.round(covH/WFM_OPH.length*100)}%`,`${wdShifts.length} agentes · ${WFM_OPH.length}h operativas`,covH>=WFM_OPH.length*.8?'tr-up':'tr-dn','fas fa-user-clock','ic-v',null)+
+    sCard('Turnos','8 h continuas','Lun–Vie · 2 breaks 15 min','tr-n','fas fa-clock','ic-g',null);
+}
+
+function wfmOptimize(demand,opStart,opEnd,shiftLen,nAgents){
+  // demand[i] = volumen en hora (opStart + i)
+  const possible=[];
+  for(let s=opStart;s+shiftLen<=opEnd;s++)possible.push(s);
+  const rem=[...demand];
+  const starts=[];
+  for(let i=0;i<nAgents;i++){
+    let best=possible[0],bestScore=-Infinity;
+    for(const s of possible){
+      let score=0;
+      for(let h=s;h<s+shiftLen;h++){const idx=h-opStart;if(idx>=0&&idx<rem.length)score+=rem[idx];}
+      if(score>bestScore){bestScore=score;best=s;}
+    }
+    starts.push(best);
+    for(let h=best;h<best+shiftLen;h++){const idx=h-opStart;if(idx>=0&&idx<rem.length)rem[idx]=Math.max(0,rem[idx]-1);}
+  }
+  return starts.sort((a,b)=>a-b).map(s=>{
+    const sh=Array.from({length:shiftLen},(_,i)=>s+i);
+    const low=arr=>arr.reduce((b,h)=>{const id=h-opStart,bi=b-opStart;return id>=0&&id<demand.length&&demand[id]<(bi>=0&&bi<demand.length?demand[bi]:Infinity)?h:b;},arr[0]);
+    return{start:s,end:s+shiftLen,breakAm:low(sh.slice(1,4)),breakPm:low(sh.slice(4,7))};
+  });
+}
+
+function wfmRenderGantt(id,shifts,demand){
+  const agN=['Agente 1','Agente 2','Agente 3','Agente 4'];
+  const cov=WFM_OPH.map(h=>shifts.filter(s=>h>=s.start&&h<s.end).length);
+  document.getElementById(id).innerHTML=`
+    <table style="width:100%;border-collapse:collapse;font-size:10px">
+      <thead><tr>
+        <th style="width:76px;text-align:left;padding:3px 6px;color:#9CA3AF">Agente</th>
+        ${WFM_OPH.map(h=>`<th style="text-align:center;padding:3px 2px;color:#9CA3AF;min-width:40px">${h}h</th>`).join('')}
+      </tr></thead>
+      <tbody>
+        ${shifts.map((s,i)=>`<tr>
+          <td style="padding:3px 6px;font-size:11px;font-weight:600;color:#374151">${agN[i]||'Ag.'+(i+1)}</td>
+          ${WFM_OPH.map(h=>{
+            const on=h>=s.start&&h<s.end,bk=on&&(h===s.breakAm||h===s.breakPm);
+            if(!on)return`<td style="background:#F9FAFB;border:1px solid #F3F4F6;padding:6px 2px"></td>`;
+            if(bk)return`<td style="background:#FEF3C7;border:1px solid #FDE68A;text-align:center;color:#92400E;font-size:12px" title="Break 15 min">☕</td>`;
+            return`<td style="background:rgba(124,58,237,.14);border:1px solid #EDE9FE;text-align:center;color:#5B21B6;font-size:10px">▪</td>`;
+          }).join('')}
+        </tr>`).join('')}
+        <tr style="border-top:2px solid #EDE9FE">
+          <td style="padding:3px 6px;font-size:10px;color:#9CA3AF;font-weight:600">Cobertura</td>
+          ${cov.map(n=>{
+            const bg=n===0?'#F9FAFB':n>=3?'rgba(16,185,129,.2)':n>=2?'rgba(245,158,11,.15)':'rgba(239,68,68,.1)';
+            const col=n===0?'#D1D5DB':n>=3?'#065F46':n>=2?'#92400E':'#991B1B';
+            return`<td style="background:${bg};border:1px solid #F3F4F6;text-align:center;padding:4px 2px;font-weight:700;color:${col};font-size:11px">${n||'—'}</td>`;
+          }).join('')}
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+function wfmRenderTable(id,shifts){
+  const agN=['Agente 1','Agente 2','Agente 3','Agente 4'];
+  const fmtH=h=>{const p=h>=12?'pm':'am',h12=h>12?h-12:h===0?12:h;return`${h12}:00 ${p}`;};
+  const fmtBrk=h=>`${fmtH(h)} – ${h===12?'12:15 pm':h>=13?`${h-12}:15 pm`:h===12?'12:15 pm':`${h}:15 ${h>=12?'pm':'am'}`}`;
+  document.getElementById(id).innerHTML=shifts.map((s,i)=>`
+    <tr>
+      <td><strong>${agN[i]||'Agente '+(i+1)}</strong></td>
+      <td style="color:#059669;font-weight:600">${fmtH(s.start)}</td>
+      <td style="color:#DC2626;font-weight:600">${fmtH(s.end)}</td>
+      <td><span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600">${fmtBrk(s.breakAm)}</span></td>
+      <td><span style="background:#FEF3C7;color:#92400E;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:600">${fmtBrk(s.breakPm)}</span></td>
+    </tr>`).join('');
 }
 
 // ── Alertas — casos abiertos >12h ────────
