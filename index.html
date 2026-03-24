@@ -373,20 +373,24 @@ canvas{cursor:pointer}
   <div id="pane-wfm" class="pane">
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
       <span style="font-size:12px;color:#6B7280;font-weight:500">Período:</span>
-      <select id="wfm-month-sel" onchange="_wfmMonth=this.value;if(window._dashData)renderWFM(window._dashData)" style="padding:5px 10px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer"></select>
+      <select id="wfm-month-sel" onchange="_wfmMonth=this.value;_wfmDateFrom=null;_wfmDateTo=null;document.getElementById('wfm-from').value='';document.getElementById('wfm-to').value='';if(window._dashData)renderWFM(window._dashData)" style="padding:5px 10px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer"></select>
+      <span style="font-size:11px;color:#9CA3AF;font-weight:400">ó rango</span>
+      <input type="date" id="wfm-from" style="padding:5px 8px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer" onchange="wfmSetRange()">
+      <span style="font-size:12px;color:#9CA3AF">—</span>
+      <input type="date" id="wfm-to" style="padding:5px 8px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;cursor:pointer" onchange="wfmSetRange()">
     </div>
     <div class="row g-3 mb-3" id="wfm-cards"></div>
     <!-- Volumen por hora -->
     <div class="row g-3 mb-3">
       <div class="col-12"><div class="cc">
-        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-chart-bar me-2" style="color:#7C3AED"></i>Volumen por hora y canal</div><div class="cc-sub">Casos recibidos por franja horaria en horario operativo (8:00–21:00)</div></div></div>
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-chart-bar me-2" style="color:#7C3AED"></i>Volumen por hora y canal</div><div class="cc-sub">Promedio diario de casos por canal · horario operativo (8:00–21:00)</div></div></div>
         <canvas id="wfm-vol-hora" height="75"></canvas>
       </div></div>
     </div>
     <!-- Heatmap -->
     <div class="row g-3 mb-3">
       <div class="col-12"><div class="cc">
-        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-th me-2" style="color:#7C3AED"></i>Distribución por día y hora</div><div class="cc-sub">Intensidad de casos — escala de color por volumen relativo</div></div></div>
+        <div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-th me-2" style="color:#7C3AED"></i>Distribución por día y hora</div><div class="cc-sub">Promedio diario por canal (💬 Chat · ✉ Correo) · ↑↓ variación vs período anterior · escala independiente por canal</div></div></div>
         <div style="overflow-x:auto;margin-top:8px" id="wfm-heatmap"></div>
       </div></div>
     </div>
@@ -1607,6 +1611,8 @@ function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
 
 // ── Workforce Management ─────────────────
 let _wfmMonth='all';
+let _wfmDateFrom=null;     // Date | null — cuando hay rango personalizado activo
+let _wfmDateTo=null;       // Date | null
 let _wfmSched=[];          // horario real [{canal,agente,start,end,breakAm,lunch,breakPm}, ...]
 let _wfmHV={};             // volúmenes por hora guardados para Erlang
 let _wfmAgents=[];         // lista de agentes extraída de tickets
@@ -1615,13 +1621,41 @@ const WFM_OPH=Array.from({length:13},(_,i)=>i+8); // horas 8..20
 const WFM_DOW=['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const WFM_DOWMAP={1:0,2:1,3:2,4:3,5:4,6:5,0:6};
 
+function wfmSetRange(){
+  const f=document.getElementById('wfm-from').value;
+  const t=document.getElementById('wfm-to').value;
+  if(f&&t&&f<=t){
+    _wfmDateFrom=new Date(f+'T00:00:00');
+    _wfmDateTo=new Date(t+'T23:59:59');
+    _wfmMonth='all';
+    document.getElementById('wfm-month-sel').value='all';
+    if(window._dashData)renderWFM(window._dashData);
+  }
+}
+
 function renderWFM(d){
   const{tickets}=d;
   // ── Selector de mes ──
   const allM=[...new Set(tickets.map(t=>t.mLbl).filter(Boolean))].sort((a,b)=>MONTHS.indexOf(a)-MONTHS.indexOf(b));
   const sel=document.getElementById('wfm-month-sel');
   sel.innerHTML='<option value="all">Todos los meses</option>'+allM.map(m=>`<option value="${m}"${m===_wfmMonth?' selected':''}>${m}</option>`).join('');
-  const tix=_wfmMonth==='all'?tickets:tickets.filter(t=>t.mLbl===_wfmMonth);
+
+  // ── Filtro: rango de fechas personalizado tiene prioridad sobre mes ──
+  let tix, tixPrev=[];
+  if(_wfmDateFrom&&_wfmDateTo){
+    tix=tickets.filter(t=>t.fc instanceof Date&&t.fc>=_wfmDateFrom&&t.fc<=_wfmDateTo);
+    const durMs=_wfmDateTo.getTime()-_wfmDateFrom.getTime();
+    const prevTo=new Date(_wfmDateFrom.getTime()-1);
+    const prevFrom=new Date(_wfmDateFrom.getTime()-durMs-86400000);
+    tixPrev=tickets.filter(t=>t.fc instanceof Date&&t.fc>=prevFrom&&t.fc<=prevTo);
+  } else {
+    tix=_wfmMonth==='all'?tickets:tickets.filter(t=>t.mLbl===_wfmMonth);
+    if(_wfmMonth!=='all'){
+      const mIdx=MONTHS.indexOf(_wfmMonth);
+      const prevM=mIdx>0?MONTHS[mIdx-1]:null;
+      tixPrev=prevM?tickets.filter(t=>t.mLbl===prevM):[];
+    }
+  }
 
   // ── Agentes únicos ──
   _wfmAgents=[...new Set(tickets.map(t=>t.agente).filter(Boolean))].sort();
@@ -1643,28 +1677,70 @@ function renderWFM(d){
   window._wfmNDays=Math.max(1,_opDays.size);
 
   mk('wfm-vol-hora',{type:'bar',data:{labels:WFM_OPH.map(h=>`${h}:00`),datasets:[
-    {label:'Chat (Web/WA)',data:WFM_OPH.map(h=>_wfmHV[h].chat),backgroundColor:'rgba(124,58,237,.75)',borderRadius:3,stack:'s'},
-    {label:'Correo',data:WFM_OPH.map(h=>_wfmHV[h].correo),backgroundColor:'rgba(79,70,229,.75)',borderRadius:3,stack:'s'},
-  ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},plugins:{...GO.plugins,tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} (total) · ${(ctx.parsed.y/window._wfmNDays).toFixed(1)}/día`}}}}});
+    {label:'Chat (Web/WA)',data:WFM_OPH.map(h=>Math.ceil(_wfmHV[h].chat/window._wfmNDays)),backgroundColor:'rgba(124,58,237,.75)',borderRadius:3,stack:'s'},
+    {label:'Correo',data:WFM_OPH.map(h=>Math.ceil(_wfmHV[h].correo/window._wfmNDays)),backgroundColor:'rgba(79,70,229,.75)',borderRadius:3,stack:'s'},
+  ]},options:{...GO,scales:{...GO.scales,x:{...GO.scales.x,stacked:true},y:{...GO.scales.y,stacked:true}},plugins:{...GO.plugins,tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y} casos/día (prom.)`}}}}});
 
-  // ── Heatmap ──
-  const dh=Array.from({length:7},()=>new Array(21).fill(0));
+  // ── Heatmap — promedio diario por canal, sub-columnas Chat / Correo ──
+  const dhChat=Array.from({length:7},()=>new Array(21).fill(0));
+  const dhCo=Array.from({length:7},()=>new Array(21).fill(0));
   tix.forEach(t=>{
     if(!(t.fc instanceof Date))return;
     const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
-    if(h>=8&&h<=20)dh[di][h]++;
+    if(h>=8&&h<=20){if(t.canal==='Correo')dhCo[di][h]++;else dhChat[di][h]++;}
   });
-  const maxCell=Math.max(1,...dh.flat());
+  const nDaysHM=window._wfmNDays;
+  // Período anterior
+  const dhChatP=Array.from({length:7},()=>new Array(21).fill(0));
+  const dhCoP=Array.from({length:7},()=>new Array(21).fill(0));
+  tixPrev.forEach(t=>{
+    if(!(t.fc instanceof Date))return;
+    const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
+    if(h>=8&&h<=20){if(t.canal==='Correo')dhCoP[di][h]++;else dhChatP[di][h]++;}
+  });
+  const nDaysHMP=Math.max(1,new Set(tixPrev.filter(t=>t.fc instanceof Date).map(t=>{const d=t.fc;return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;})).size);
+  const hasPrev=tixPrev.length>0;
+  // Promedios con ceil (nunca medio agente)
+  const avgC=(mat,nD,di,h)=>Math.ceil(mat[di][h]/nD);
+  const maxChat=Math.max(1,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>avgC(dhChat,nDaysHM,di,h))).flat());
+  const maxCo=Math.max(1,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>avgC(dhCo,nDaysHM,di,h))).flat());
+  // Delta vs período anterior
+  const hmDelta=(curr,prev,isDarkBg)=>{
+    if(!hasPrev||(prev===0&&curr===0))return'';
+    if(prev===0)return`<div style="font-size:8px;line-height:1.2;color:${isDarkBg?'#FCD34D':'#D97706'}">nuevo</div>`;
+    const pct=Math.round((curr-prev)/prev*100);
+    if(Math.abs(pct)<5)return`<div style="font-size:8px;line-height:1.2;color:${isDarkBg?'rgba(255,255,255,.6)':'#9CA3AF'}">→</div>`;
+    const up=pct>0;
+    return`<div style="font-size:8px;line-height:1.2;color:${up?(isDarkBg?'#FCD34D':'#D97706'):(isDarkBg?'#6EE7B7':'#059669')}">${up?'↑':'↓'}${Math.abs(pct)}%</div>`;
+  };
+  const hmCellChat=(di,h)=>{
+    const v=avgC(dhChat,nDaysHM,di,h),p=v/maxChat;
+    const bg=v===0?'#F9FAFB':`rgba(124,58,237,${(0.1+p*0.8).toFixed(2)})`;
+    const col=p>0.5?'#fff':'#374151';
+    const vP=avgC(dhChatP,nDaysHMP,di,h);
+    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6;border-left:2px solid #EDE9FE">${v||''}${hmDelta(v,vP,p>0.5)}</td>`;
+  };
+  const hmCellCo=(di,h)=>{
+    const v=avgC(dhCo,nDaysHM,di,h),p=v/maxCo;
+    const bg=v===0?'#F9FAFB':`rgba(79,70,229,${(0.1+p*0.8).toFixed(2)})`;
+    const col=p>0.5?'#fff':'#374151';
+    const vP=avgC(dhCoP,nDaysHMP,di,h);
+    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6">${v||''}${hmDelta(v,vP,p>0.5)}</td>`;
+  };
   document.getElementById('wfm-heatmap').innerHTML=`
     <table class="hm-table" style="font-size:10px">
-      <thead><tr><th style="min-width:38px"></th>${WFM_OPH.map(h=>`<th style="text-align:center">${h}h</th>`).join('')}</tr></thead>
+      <thead>
+        <tr>
+          <th style="min-width:38px"></th>
+          ${WFM_OPH.map(h=>`<th colspan="2" style="text-align:center;border-left:2px solid #EDE9FE;padding:4px 2px">${h}h</th>`).join('')}
+        </tr>
+        <tr>
+          <th></th>
+          ${WFM_OPH.map(()=>`<th style="text-align:center;font-size:9px;color:#7C3AED;border-left:2px solid #EDE9FE;padding:2px 3px;font-weight:600">💬</th><th style="text-align:center;font-size:9px;color:#4F46E5;padding:2px 3px;font-weight:600">✉</th>`).join('')}
+        </tr>
+      </thead>
       <tbody>${WFM_DOW.map((day,di)=>`
-        <tr><td class="hm-agent">${day}</td>${WFM_OPH.map(h=>{
-          const v=dh[di][h],p=v/maxCell;
-          const bg=v===0?'#F9FAFB':`rgba(124,58,237,${(0.1+p*0.8).toFixed(2)})`;
-          const col=p>0.5?'#fff':'#374151';
-          return`<td style="background:${bg};color:${col};text-align:center;padding:5px 2px;min-width:40px">${v||''}</td>`;
-        }).join('')}</tr>`).join('')}
+        <tr><td class="hm-agent">${day}</td>${WFM_OPH.map(h=>hmCellChat(di,h)+hmCellCo(di,h)).join('')}</tr>`).join('')}
       </tbody>
     </table>`;
 
@@ -1697,12 +1773,17 @@ function renderWFM(d){
 
   // ── KPIs ──
   const peakH=WFM_OPH.reduce((b,h)=>(_wfmHV[h].chat+_wfmHV[h].correo)>(_wfmHV[b].chat+_wfmHV[b].correo)?h:b,WFM_OPH[0]);
-  const peakTot=_wfmHV[peakH].chat+_wfmHV[peakH].correo;
-  const dowTot=WFM_DOW.map((_,di)=>WFM_OPH.reduce((s,h)=>s+dh[di][h],0));
-  const peakDi=dowTot.indexOf(Math.max(...dowTot));
+  const peakAvg=Math.ceil((_wfmHV[peakH].chat+_wfmHV[peakH].correo)/window._wfmNDays);
+  // dowTot: cuenta ocurrencias distintas por día de semana para promedio correcto
+  const dowDates=Array.from({length:7},()=>new Set());
+  tix.filter(t=>t.fc instanceof Date).forEach(t=>{const di=WFM_DOWMAP[t.fc.getDay()];const d=t.fc;dowDates[di].add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);});
+  const dowOcc=dowDates.map(s=>Math.max(1,s.size));
+  const dowTot=WFM_DOW.map((_,di)=>WFM_OPH.reduce((s,h)=>s+dhChat[di][h]+dhCo[di][h],0));
+  const dowAvg=WFM_DOW.map((_,di)=>Math.ceil(dowTot[di]/dowOcc[di]));
+  const peakDi=dowAvg.indexOf(Math.max(...dowAvg));
   document.getElementById('wfm-cards').innerHTML=
-    sCard('Hora pico',`${peakH}:00`,`${peakTot} casos acumulados`,'tr-n','fas fa-fire','ic-r',null)+
-    sCard('Día más activo',WFM_DOW[peakDi],`${dowTot[peakDi]} casos`,'tr-n','fas fa-calendar-day','ic-a',null)+
+    sCard('Hora pico',`${peakH}:00`,`~${peakAvg} casos/día prom.`,'tr-n','fas fa-fire','ic-r',null)+
+    sCard('Día más activo',WFM_DOW[peakDi],`~${dowAvg[peakDi]} casos/día prom.`,'tr-n','fas fa-calendar-day','ic-a',null)+
     sCard('Agentes Chat','2 agentes','Web + WhatsApp · máx 5 simultáneos','tr-n','fas fa-comments','ic-v',null)+
     sCard('Agentes Correo','2 agentes','Correo · 1 caso por agente','tr-n','fas fa-envelope','ic-g',null);
 
