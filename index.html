@@ -138,6 +138,7 @@ canvas{cursor:pointer}
     <div class="ni" id="nav-ia" onclick="setView('ia')"><i class="fas fa-robot"></i>Agente IA</div>
     <div class="nav-lbl" style="margin-top:10px">Análisis</div>
     <div class="ni" id="nav-sla" onclick="setView('sla')"><i class="fas fa-exclamation-triangle"></i>Análisis SLA</div>
+    <div class="ni" id="nav-alrt" onclick="setView('alrt')" style="color:#EF4444"><i class="fas fa-bell" style="color:#EF4444"></i>Alertas <span id="alrt-badge" style="background:#EF4444;color:#fff;border-radius:20px;font-size:10px;padding:1px 7px;margin-left:4px;display:none"></span></div>
   </nav>
   <div class="ni" id="nav-icp" onclick="setView('icp')"><i class="fas fa-users"></i>ICP</div>
   <div class="ni" id="nav-glos" onclick="setView('glos')" style="margin:8px 12px;border-radius:8px"><i class="fas fa-book"></i>Glosario</div>
@@ -187,6 +188,14 @@ canvas{cursor:pointer}
     <div class="row g-3">
       <div class="col-md-7"><div class="cc h-100"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-trophy me-2" style="color:#F59E0B"></i>Top 5 clientes por volumen</div><div class="cc-sub">Casos totales con desglose por canal</div></div></div><canvas id="ch-g-top5" height="160"></canvas></div></div>
       <div class="col-md-5"><div class="cc h-100"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-signal me-2" style="color:#7C3AED"></i>Canal principal por cliente</div><div class="cc-sub">Canal con más casos para cada ICP</div></div></div><div id="g-canal-cards" style="margin-top:8px"></div></div></div>
+    </div>
+    <div class="row g-3 mb-3 mt-0">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-box me-2" style="color:#7C3AED"></i>Top productos con más incidencias</div><div class="cc-sub">Casos por producto reportado</div></div></div><canvas id="ch-g-prod" height="160"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-building me-2" style="color:#4F46E5"></i>Incidencias por proveedor</div><div class="cc-sub">Casos por proveedor involucrado</div></div></div><canvas id="ch-g-prov" height="160"></canvas></div></div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-exclamation-triangle me-2" style="color:#F59E0B"></i>Tasa de escalación por agente</div><div class="cc-sub">% de casos escalados sobre total (mín. 3 casos)</div></div></div><canvas id="ch-g-esc" height="160"></canvas></div></div>
+      <div class="col-md-6"><div class="cc"><div class="cc-hd"><div><div class="cc-ttl"><i class="fas fa-star me-2" style="color:#10B981"></i>Distribución de ratings CSAT</div><div class="cc-sub">Número de respuestas por puntuación (1–5)</div></div></div><canvas id="ch-g-csat-dist" height="160"></canvas></div></div>
     </div>
   </div>
 
@@ -356,6 +365,42 @@ canvas{cursor:pointer}
     </div>
   </div>
 
+
+  <!-- Alertas -->
+  <div id="pane-alrt" class="pane">
+    <div class="cc mb-3" style="border-left:4px solid #EF4444">
+      <div class="cc-hd" style="flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="cc-ttl"><i class="fas fa-bell me-2" style="color:#EF4444"></i>Casos abiertos hace más de 12 horas</div>
+          <div class="cc-sub" id="alrt-sub">Sin datos cargados</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <select id="alrt-filter-agente" onchange="filterAlrt()" style="padding:6px 10px;border:1px solid #EDE9FE;border-radius:8px;font-size:12px;outline:none;color:#374151;min-width:160px">
+            <option value="">Todos los agentes</option>
+          </select>
+          <span id="alrt-count" style="font-size:12px;font-weight:700;color:#EF4444"></span>
+        </div>
+      </div>
+    </div>
+    <div class="tc">
+      <div style="overflow-x:auto">
+        <table class="dt" id="alrt-table">
+          <thead>
+            <tr>
+              <th>Caso</th>
+              <th>Agente</th>
+              <th>Canal</th>
+              <th>Tipo de gestión</th>
+              <th>Estado</th>
+              <th>Fecha creación</th>
+              <th style="color:#EF4444">Tiempo abierto</th>
+            </tr>
+          </thead>
+          <tbody id="alrt-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <!-- Glosario -->
   <div id="pane-glos" class="pane">
@@ -552,7 +597,7 @@ function process(raw){
       const estado=isLegacy?"Resuelto":rawEstado;
       const isResolved=isLegacy||(rawEstado==="Resuelto");
       const ttr=isResolved&&fc&&fciRow&&fciRow>fc?(fciRow-fc)/3600000:null;
-      tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,rawEstado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci:fciRow,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",mLblFci:fciRow?mLbl(fciRow):"",wLblFci:fciRow?wLbl(fciRow):"",cliente:(row["Cliente"]||"").trim()};
+      tmap[tk]={tk,src,agente:row["Tech Support"]||"",resolvedBy:row["Resuelto por"]||"",tipo:row["Tipo de gestion"]||row["Tipo de gestión"]||"",estado,rawEstado,canal:src==="chat"?(row["Canal"]||"Chat"):"Correo",fc,fci:fciRow,ttr,mLbl:fc?mLbl(fc):"",wLbl:fc?wLbl(fc):"",mLblFci:fciRow?mLbl(fciRow):"",wLblFci:fciRow?wLbl(fciRow):"",cliente:(row["Cliente"]||"").trim(),producto:(row["Producto"]||"").trim(),proveedor:(row["Proveedor"]||"").trim()};
     } else {
       // Evento adicional del mismo ticket: fc mínima, fci máxima, estado del evento más reciente
       const t=tmap[tk];
@@ -704,6 +749,29 @@ function renderG(d){
   mk('ch-tipo',{type:'bar',data:{labels:td.map(d=>d.t),datasets:[{label:'Casos',data:td.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const tipo=td[el[0].index].t;showDetailFiltered(tickets.filter(t=>t.tipo===tipo),`Tipo: ${tipo}`);}}}  );
   renderHeatmap(tickets,'hm-agente-mes',mode);
   renderICPTop5({tickets:allTix},'ch-g-top5','g-canal-cards');
+  // Top productos
+  const bprod=grp(tickets.filter(t=>t.producto),t=>t.producto);
+  const prodData=Object.entries(bprod).map(([p,a])=>({p,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,8);
+  if(prodData.length){
+    mk('ch-g-prod',{type:'bar',data:{labels:prodData.map(d=>d.p),datasets:[{label:'Casos',data:prodData.map(d=>d.n),backgroundColor:'rgba(124,58,237,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=prodData[el[0].index].p;showDetailFiltered(tickets.filter(t=>t.producto===p),`Producto: ${p}`);}}}  );
+  } else {
+    document.getElementById('ch-g-prod').closest('.cc').querySelector('.cc-sub').textContent='Sin datos de producto en los registros cargados';
+  }
+  // Top proveedores
+  const bprov=grp(tickets.filter(t=>t.proveedor),t=>t.proveedor);
+  const provData=Object.entries(bprov).map(([p,a])=>({p,n:a.length})).sort((a,b)=>b.n-a.n).slice(0,8);
+  if(provData.length){
+    mk('ch-g-prov',{type:'bar',data:{labels:provData.map(d=>d.p),datasets:[{label:'Casos',data:provData.map(d=>d.n),backgroundColor:'rgba(79,70,229,.7)',borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},onClick:(e,el)=>{if(!el.length)return;const p=provData[el[0].index].p;showDetailFiltered(tickets.filter(t=>t.proveedor===p),`Proveedor: ${p}`);}}}  );
+  } else {
+    document.getElementById('ch-g-prov').closest('.cc').querySelector('.cc-sub').textContent='Sin datos de proveedor en los registros cargados';
+  }
+  // Tasa de escalación por agente
+  const escAgente=grp(tickets.filter(t=>t.agente),t=>t.agente);
+  const escData=Object.entries(escAgente).map(([a,ts])=>({a,pct:ts.length?Math.round(ts.filter(t=>t.rawEstado==='Escalado').length/ts.length*100):0,tot:ts.length})).filter(d=>d.tot>=3).sort((a,b)=>b.pct-a.pct).slice(0,10);
+  mk('ch-g-esc',{type:'bar',data:{labels:escData.map(d=>d.a.split(' ').slice(0,2).join(' ')),datasets:[{label:'% Escalados',data:escData.map(d=>d.pct),backgroundColor:escData.map(d=>d.pct>20?'rgba(239,68,68,.7)':d.pct>10?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'),borderRadius:4}]},options:{...GO,indexAxis:'y',plugins:{legend:{display:false}},scales:{...GO.scales,x:{...GO.scales.x,max:100,ticks:{font:{size:10},callback:v=>v+'%'}}}}}  );
+  // Distribución CSAT 1-5
+  const csatDist=[1,2,3,4,5].map(v=>csatRows.filter(r=>Math.round(r.v)===v).length);
+  mk('ch-g-csat-dist',{type:'bar',data:{labels:['1 ★','2 ★★','3 ★★★','4 ★★★★','5 ★★★★★'],datasets:[{label:'Respuestas',data:csatDist,backgroundColor:['rgba(239,68,68,.75)','rgba(245,158,11,.75)','rgba(251,191,36,.75)','rgba(52,211,153,.75)','rgba(16,185,129,.75)'],borderRadius:5}]},options:{...GO,plugins:{legend:{display:false}}}});
 }
 
 function renderHeatmap(tickets,containerId,mode='m'){
@@ -1073,22 +1141,23 @@ function backFromDetail(){setView(detFrom);}
 // ── UI helpers ───────────────────────────
 function setView(v){
   if(v!=='d') currentView=v;
-  ['g','o','d','ch','co','ia','sla','glos','icp'].forEach(x=>{
+  ['g','o','d','ch','co','ia','sla','glos','icp','alrt'].forEach(x=>{
     document.getElementById(`pane-${x}`).className='pane'+(v===x?' show':'');
   });
   ['g','o'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  ['ch','co','ia','sla','glos','icp'].forEach(x=>{
+  ['ch','co','ia','sla','glos','icp','alrt'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
-  const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente'};
+  const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente',alrt:'Alertas — Casos críticos'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
   if(v==='co'&&window._dashData) renderCo(window._dashData);
   if(v==='ia'&&window._dashData) renderIA(window._dashData);
   if(v==='sla'&&window._dashData) renderSLA(window._dashData);
   if(v==='icp'&&window._dashData) renderICP(window._dashData);
+  if(v==='alrt'&&window._dashData) renderAlrt(window._dashData);
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
