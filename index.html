@@ -666,6 +666,7 @@ function render(data,savedAt){
   document.getElementById('last-upd').textContent=`Actualizado hasta: ${fechaStr}`;
   try{renderG(data);}catch(e){console.error('renderG',e);}
   try{renderO(data);}catch(e){console.error('renderO',e);}
+  try{renderAlrt(data);}catch(e){console.error('renderAlrt',e);}
   setView(currentView);
 }
 
@@ -1483,6 +1484,62 @@ function renderICPTop5(d,canvasId='ch-icp-top5',cardsId='icp-canal-cards'){
       </div>
     </div>`;
   }).join('');
+}
+
+// ── Alertas — casos abiertos >12h ────────
+const ALRT_HOURS=12;
+let _alrtRows=[];
+
+function renderAlrt(d){
+  const now=new Date();
+  _alrtRows=d.tickets
+    .filter(t=>!closed(t.estado)&&t.fc instanceof Date&&!isNaN(t.fc)&&t.fc>=MARCH1)
+    .map(t=>({...t,horasAbierto:(now-t.fc)/3600000}))
+    .filter(t=>t.horasAbierto>=ALRT_HOURS)
+    .sort((a,b)=>b.horasAbierto-a.horasAbierto);
+
+  // Poblar selector de agentes
+  const agentes=[...new Set(_alrtRows.map(t=>t.agente).filter(Boolean))].sort();
+  const sel=document.getElementById('alrt-filter-agente');
+  const prev=sel.value;
+  sel.innerHTML='<option value="">Todos los agentes</option>'+agentes.map(a=>`<option value="${a}">${a}</option>`).join('');
+  if(prev&&agentes.includes(prev)) sel.value=prev;
+
+  // Badge en sidebar
+  const badge=document.getElementById('alrt-badge');
+  if(_alrtRows.length){badge.textContent=_alrtRows.length;badge.style.display='inline';}
+  else{badge.style.display='none';}
+
+  filterAlrt();
+}
+
+function filterAlrt(){
+  const agente=document.getElementById('alrt-filter-agente').value;
+  const rows=agente?_alrtRows.filter(t=>t.agente===agente):_alrtRows;
+  const fmt=d=>d instanceof Date&&!isNaN(d)?d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}):'—';
+  const horasFmt=h=>{
+    if(h<24)return`${h.toFixed(1)}h`;
+    const d=Math.floor(h/24),r=h%24;
+    return`${d}d ${r.toFixed(0)}h`;
+  };
+  const urgColor=h=>h>=48?'#991B1B':h>=24?'#DC2626':h>=12?'#D97706':'#374151';
+  const urgBg=h=>h>=48?'#FEE2E2':h>=24?'#FEF3C7':'#FFFBEB';
+  document.getElementById('alrt-sub').textContent=
+    `${rows.length} caso${rows.length!==1?'s':''} sin resolver · umbral: más de ${ALRT_HOURS} horas`;
+  document.getElementById('alrt-count').textContent=rows.length?`${rows.length} casos`:' ';
+  document.getElementById('alrt-body').innerHTML=rows.map(t=>`
+    <tr style="background:${urgBg(t.horasAbierto)}">
+      <td><code style="font-size:10px;color:#7C3AED;cursor:pointer" onclick="showDetailFiltered([window._dashData.tickets.find(x=>x.tk==='${t.tk}')].filter(Boolean),'Caso ${t.tk}')">${String(t.tk).slice(0,14)}</code></td>
+      <td>${t.agente||'—'}</td>
+      <td><span class="bs bs-pr">${t.canal||'—'}</span></td>
+      <td style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
+      <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
+      <td style="color:#9CA3AF;font-size:11px">${fmt(t.fc)}</td>
+      <td style="font-weight:700;color:${urgColor(t.horasAbierto)}">${horasFmt(t.horasAbierto)}</td>
+    </tr>`).join('');
+  if(!rows.length){
+    document.getElementById('alrt-body').innerHTML=`<tr><td colspan="7" style="text-align:center;color:#9CA3AF;padding:28px;font-size:13px"><i class="fas fa-check-circle me-2" style="color:#10B981"></i>Sin casos abiertos más de ${ALRT_HOURS} horas${agente?' para este agente':''}</td></tr>`;
+  }
 }
 
 window.addEventListener('load',async()=>{
