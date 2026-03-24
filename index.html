@@ -1673,19 +1673,19 @@ function renderWFM(d){
     const di=WFM_DOWMAP[t.fc.getDay()],h=t.fc.getHours();
     if(h>=8&&h<=20)wkDH[di][h]++;
   });
-  const wdDemChat=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,dd)=>s+Math.round(dd[h]*(dh[0+0]>0||true?1:1)),0));
-  const wdDemCo=WFM_OPH.map(h=>wkDH.slice(0,5).reduce((s,dd)=>s+dd[h],0));
-  // Separar por canal en ventana reciente
-  const wdChatHV={},wdCoHV={};
-  WFM_OPH.forEach(h=>{wdChatHV[h]=0;wdCoHV[h]=0;});
+  // Demanda Lun-Vie por canal (solo días laborales, ventana reciente)
+  const wdChatH={},wdCoH={};
+  WFM_OPH.forEach(h=>{wdChatH[h]=0;wdCoH[h]=0;});
   recent.filter(t=>t.fc instanceof Date).forEach(t=>{
+    const dow=t.fc.getDay(); // 0=Dom,6=Sáb
+    if(dow===0||dow===6)return; // excluir fines de semana
     const h=t.fc.getHours();
     if(h<8||h>20)return;
-    if(t.canal==='Correo')wdCoHV[h]++;
-    else wdChatHV[h]++;
+    if(t.canal==='Correo')wdCoH[h]++;
+    else wdChatH[h]++;
   });
-  const chatDem=WFM_OPH.map(h=>wdChatHV[h]);
-  const coDem=WFM_OPH.map(h=>wdCoHV[h]);
+  const chatDem=WFM_OPH.map(h=>wdChatH[h]);
+  const coDem=WFM_OPH.map(h=>wdCoH[h]);
   const sugChat=wfmOptimize(chatDem,8,21,8,2);
   const sugCo=wfmOptimize(coDem,8,21,8,2);
 
@@ -1836,21 +1836,30 @@ function wfmRefreshErlang(){
 function wfmOptimize(demand,opStart,opEnd,shiftLen,nAgents){
   const possible=[];
   for(let s=opStart;s+shiftLen<=opEnd;s++)possible.push(s);
-  const rem=[...demand];const starts=[];
+  // Piso de 1 para que el algoritmo valore cubrir cualquier hora operativa,
+  // incluidas las de baja demanda al final del día
+  const base=demand.map(v=>Math.max(v,1));
+  const covered=new Array(base.length).fill(0);
+  const starts=[];
   for(let i=0;i<nAgents;i++){
     let best=possible[0],bestScore=-Infinity;
     for(const s of possible){
       let score=0;
-      for(let h=s;h<s+shiftLen;h++){const idx=h-opStart;if(idx>=0&&idx<rem.length)score+=rem[idx];}
+      for(let h=s;h<s+shiftLen;h++){
+        const idx=h-opStart;
+        if(idx<0||idx>=base.length)continue;
+        // Horas sin cobertura valen el doble → fuerza escalonamiento
+        score+=covered[idx]===0?base[idx]*2:base[idx]*0.3;
+      }
       if(score>bestScore){bestScore=score;best=s;}
     }
     starts.push(best);
-    for(let h=best;h<best+shiftLen;h++){const idx=h-opStart;if(idx>=0&&idx<rem.length)rem[idx]=Math.max(0,rem[idx]-1);}
+    for(let h=best;h<best+shiftLen;h++){const idx=h-opStart;if(idx>=0&&idx<covered.length)covered[idx]++;}
   }
   return starts.sort((a,b)=>a-b).map(s=>{
     const sh=Array.from({length:shiftLen},(_,i)=>s+i);
     const low=arr=>arr.reduce((b,h)=>{const id=h-opStart,bi=b-opStart;return id>=0&&id<demand.length&&demand[id]<(bi>=0&&bi<demand.length?demand[bi]:Infinity)?h:b;},arr[0]);
-    const lunchH=low(sh.slice(3,6)); // hora de menor demanda en zona central
+    const lunchH=low(sh.slice(3,6));
     const bAm=low(sh.slice(1,3));
     const bPm=low(sh.slice(5,8).filter(h=>h!==lunchH));
     return{start:s,end:s+shiftLen,breakAm:bAm,lunch:lunchH,breakPm:bPm};
