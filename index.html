@@ -1158,7 +1158,7 @@ function setView(v){
   if(v==='ia'&&window._dashData) renderIA(window._dashData);
   if(v==='sla'&&window._dashData) renderSLA(window._dashData);
   if(v==='icp'&&window._dashData) renderICP(window._dashData);
-  if(v==='alrt'&&window._dashData) renderAlrt(window._dashData);
+  if(v==='alrt'&&window._dashData){try{renderAlrt(window._dashData);}catch(e){console.error('renderAlrt',e);}}
 }
 function showLoading(s){document.getElementById('loading').style.display=s?'flex':'none';}
 function showErr(msg){const b=document.getElementById('err-box');b.style.display=msg?'block':'none';if(msg)b.innerHTML=`<i class="fas fa-exclamation-circle me-2"></i>${msg}`;}
