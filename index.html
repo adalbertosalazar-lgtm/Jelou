@@ -150,7 +150,9 @@ canvas{cursor:pointer}
 <!-- Topbar -->
 <div class="topbar">
   <div class="tb-title" id="page-title">Overview — 2026</div>
-  <div class="tb-right"></div>
+  <div class="tb-right">
+    <a id="btn-informar" href="https://forms.gle/wE3PAow8Bh7xJjZf9" target="_blank" rel="noopener" style="display:none;text-decoration:none"><button class="bv bv-g" style="background:linear-gradient(135deg,#EF4444,#DC2626);display:flex;align-items:center;gap:6px"><i class="fas fa-exclamation-circle"></i>Informar motivos</button></a>
+  </div>
 </div>
 
 <!-- Main -->
@@ -1151,6 +1153,7 @@ function setView(v){
   ['ch','co','ia','sla','glos','icp','alrt'].forEach(x=>{
     document.getElementById(`nav-${x}`).className='ni'+((v===x)?' active':'');
   });
+  document.getElementById('btn-informar').style.display=v==='alrt'?'inline':'none';
   const titles={g:'Overview — 2026',o:'Ops — 2026',d:'Detalle de casos',ch:'Canal Chat — 2026',co:'Canal Correo — 2026',ia:'Agente IA — 2026',sla:'Análisis SLA — 2026',glos:'Glosario',icp:'ICP — Casos por cliente',alrt:'Alertas — Casos críticos'};
   document.getElementById('page-title').textContent=titles[v]||'';
   if(v==='ch'&&window._dashData) renderCh(window._dashData);
