@@ -462,7 +462,7 @@ function serializeData(d){
 }
 function deserializeData(d){
   return{
-    tickets:(d.tickets||[]).map(t=>({...t,fc:t.fc?new Date(t.fc):null,fci:t.fci?new Date(t.fci):null})),
+    tickets:(d.tickets||[]).map(t=>{const fci=t.fci?new Date(t.fci):null;return{...t,fc:t.fc?new Date(t.fc):null,fci,mLblFci:t.mLblFci||(fci?mLbl(fci):""),wLblFci:t.wLblFci||(fci?wLbl(fci):"")};}),
     csatRows:(d.csatRows||[]).map(r=>({...r,f:r.f?new Date(r.f):null})),
     aiChats:(d.aiChats||[]).map(r=>({...r,f:r.f?new Date(r.f):null,cat:r.cat||'',tipo:r.tipo||''}))
   };
