@@ -1700,32 +1700,37 @@ function renderWFM(d){
   });
   const nDaysHMP=Math.max(1,new Set(tixPrev.filter(t=>t.fc instanceof Date).map(t=>{const d=t.fc;return`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;})).size);
   const hasPrev=tixPrev.length>0;
-  // Promedios con ceil (nunca medio agente)
-  const avgC=(mat,nD,di,h)=>Math.ceil(mat[di][h]/nD);
-  const maxChat=Math.max(1,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>avgC(dhChat,nDaysHM,di,h))).flat());
-  const maxCo=Math.max(1,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>avgC(dhCo,nDaysHM,di,h))).flat());
-  // Delta vs período anterior
-  const hmDelta=(curr,prev,isDarkBg)=>{
-    if(!hasPrev||(prev===0&&curr===0))return'';
-    if(prev===0)return`<div style="font-size:8px;line-height:1.2;color:${isDarkBg?'#FCD34D':'#D97706'}">nuevo</div>`;
-    const pct=Math.round((curr-prev)/prev*100);
-    if(Math.abs(pct)<5)return`<div style="font-size:8px;line-height:1.2;color:${isDarkBg?'rgba(255,255,255,.6)':'#9CA3AF'}">→</div>`;
+  // Float para color (refleja intensidad real), ceil para número mostrado (planificación WFM)
+  const rawAvg=(mat,nD,di,h)=>mat[di][h]/nD;
+  const ceilAvg=(mat,nD,di,h)=>Math.ceil(mat[di][h]/nD);
+  // Escala independiente por canal sobre el flotante (no ceil)
+  const maxChatF=Math.max(0.01,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>rawAvg(dhChat,nDaysHM,di,h))).flat());
+  const maxCoF=Math.max(0.01,...WFM_DOW.map((_,di)=>WFM_OPH.map(h=>rawAvg(dhCo,nDaysHM,di,h))).flat());
+  // Delta sobre flotantes con umbral mínimo de 0.3 casos/día para evitar ruido estadístico
+  const hmDelta=(currF,prevF,isDarkBg)=>{
+    if(!hasPrev||currF===0&&prevF===0)return'';
+    if(Math.abs(currF-prevF)<0.3)return'';   // diferencia no significativa para staffing
+    if(prevF===0)return`<div style="font-size:8px;line-height:1.2;color:${isDarkBg?'#FCD34D':'#D97706'}">nuevo</div>`;
+    const pct=Math.round((currF-prevF)/prevF*100);
+    if(Math.abs(pct)<10)return'';             // <10% de cambio → no mostrar flecha
     const up=pct>0;
     return`<div style="font-size:8px;line-height:1.2;color:${up?(isDarkBg?'#FCD34D':'#D97706'):(isDarkBg?'#6EE7B7':'#059669')}">${up?'↑':'↓'}${Math.abs(pct)}%</div>`;
   };
   const hmCellChat=(di,h)=>{
-    const v=avgC(dhChat,nDaysHM,di,h),p=v/maxChat;
-    const bg=v===0?'#F9FAFB':`rgba(124,58,237,${(0.1+p*0.8).toFixed(2)})`;
+    const f=rawAvg(dhChat,nDaysHM,di,h),p=f/maxChatF;
+    const v=ceilAvg(dhChat,nDaysHM,di,h);
+    const bg=f===0?'#F9FAFB':`rgba(124,58,237,${(0.1+p*0.8).toFixed(2)})`;
     const col=p>0.5?'#fff':'#374151';
-    const vP=avgC(dhChatP,nDaysHMP,di,h);
-    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6;border-left:2px solid #EDE9FE">${v||''}${hmDelta(v,vP,p>0.5)}</td>`;
+    const fP=rawAvg(dhChatP,nDaysHMP,di,h);
+    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6;border-left:2px solid #EDE9FE">${v||''}${hmDelta(f,fP,p>0.5)}</td>`;
   };
   const hmCellCo=(di,h)=>{
-    const v=avgC(dhCo,nDaysHM,di,h),p=v/maxCo;
-    const bg=v===0?'#F9FAFB':`rgba(79,70,229,${(0.1+p*0.8).toFixed(2)})`;
+    const f=rawAvg(dhCo,nDaysHM,di,h),p=f/maxCoF;
+    const v=ceilAvg(dhCo,nDaysHM,di,h);
+    const bg=f===0?'#F9FAFB':`rgba(79,70,229,${(0.1+p*0.8).toFixed(2)})`;
     const col=p>0.5?'#fff':'#374151';
-    const vP=avgC(dhCoP,nDaysHMP,di,h);
-    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6">${v||''}${hmDelta(v,vP,p>0.5)}</td>`;
+    const fP=rawAvg(dhCoP,nDaysHMP,di,h);
+    return`<td style="background:${bg};color:${col};text-align:center;padding:4px 2px;min-width:34px;vertical-align:middle;border:1px solid #F3F4F6">${v||''}${hmDelta(f,fP,p>0.5)}</td>`;
   };
   document.getElementById('wfm-heatmap').innerHTML=`
     <table class="hm-table" style="font-size:10px">
