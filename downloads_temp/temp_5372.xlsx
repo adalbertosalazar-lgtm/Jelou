@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+
+    <meta name="robots" content="noindex" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#00B3C7" />
+
+    <!-- Using font-display=swap prevents fonts from blocking rendering and ensures text remains visible -->    
+    <!-- Manrope -->
+    <link rel="preload" href="/fonts/manrope-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/manrope-600.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/fonts/manrope-700.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- Poppins -->
+    <link rel="preload" href="/fonts/poppins-400.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- API Origins (critical for early API calls) -->
+    <link rel="preconnect" href="https://api.apps.jelou.ai" />
+    <link rel="preconnect" href="https://api.jelou.ai" />
+    <link rel="preconnect" href="https://cdn.onesignal.com" />
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <title>Jelou®</title>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <meta name="title" content="Jelou®" />
+    <meta name="description"
+        content="Jelou® es la plataforma que automatiza procesos de tu empresa y maximiza la rentabilidad por medio de Chatbots en Whatsapp, Facebook, Web, y canales digitales de comunicación masiva; Jelou® se integra a sistemas existente de clientes y de terceros de manera fácil y eficiente, Jelou® tiene casos de éxito en diferentes industrias: Finanzas, Retail, Logística, Contact Centers, Salud, Automotríz." />
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://apps.jelou.ai/" />
+    <meta property="og:title" content="Jelou®" />
+    <meta property="og:description"
+        content="Jelou® es la plataforma que automatiza procesos de tu empresa y maximiza la rentabilidad por medio de Chatbots en Whatsapp, Facebook, Web, y canales digitales de comunicación masiva; Jelou® se integra a sistemas existente de clientes y de terceros de manera fácil y eficiente, Jelou® tiene casos de éxito en diferentes industrias: Finanzas, Retail, Logística, Contact Centers, Salud, Automotríz." />
+    <meta property="og:image" content="https://cdn.jelou.ai/assets/meta.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://apps.jelou.ai/" />
+    <meta property="twitter:title" content="Jelou®" />
+    <meta property="twitter:description"
+        content="Jelou® es la plataforma que automatiza procesos de tu empresa y maximiza la rentabilidad por medio de Chatbots en Whatsapp, Facebook, Web, y canales digitales de comunicación masiva; Jelou® se integra a sistemas existente de clientes y de terceros de manera fácil y eficiente, Jelou® tiene casos de éxito en diferentes industrias: Finanzas, Retail, Logística, Contact Centers, Salud, Automotríz." />
+    <meta property="twitter:image" content="https://cdn.jelou.ai/assets/meta.png" />
+
+    <base href="." />
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-TRV82BJN');</script>
+    <!-- End Google Tag Manager -->
+    <!-- Meta Pixel Code -->
+    <script src="/meta-pixel.js"></script>
+    <!-- End Meta Pixel Code -->
+    <!-- <script defer type="text/javascript">
+            (function (c, l, a, r, i, t, y) {
+                c[a] =
+                    c[a] ||
+                    function () {
+                        (c[a].q = c[a].q || []).push(arguments);
+                    };
+                t = l.createElement(r);
+                t.async = 1;
+                t.src = "https://www.clarity.ms/tag/" + i;
+                y = l.getElementsByTagName(r)[0];
+                y.parentNode.insertBefore(t, y);
+            })(window, document, "clarity", "script", "n0lx25kkvm");
+        </script> -->
+  <script type="module" crossorigin src="/assets/index-Dbq6KVNk.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/date-sROa6KlK.js">
+  <link rel="modulepreload" crossorigin href="/assets/vendor-BLGjQNPb.js">
+  <link rel="stylesheet" crossorigin href="/assets/vendor-Bpe9_ThY.css">
+</head>
+
+<body class="notranslate">
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TRV82BJN"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <!-- Meta Pixel Noscript -->
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=863997758997209&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Noscript -->
+    <div id="root"></div>
+    <!-- Cloudflare Web Analytics (disabled on localhost to avoid CORS errors) -->
+    <!-- End Cloudflare Web Analytics -->
+</body>
+
+</html>
