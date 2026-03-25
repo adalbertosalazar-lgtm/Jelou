@@ -1,0 +1,34 @@
+# Configuración con credenciales (NUNCA subir a GitHub)
+config.json
+
+# Logs
+*.log
+jelou_automation.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Downloads temporales
+downloads/
+*.tmp
+
+# Caché
+.pytest_cache/
+.coverage
