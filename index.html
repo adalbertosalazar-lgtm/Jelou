@@ -220,6 +220,7 @@ canvas{cursor:pointer}
             <tr>
               <th class="th-sort" onclick="sortDetail('tk')">Caso</th>
               <th class="th-sort" onclick="sortDetail('agente')">Tech Support</th>
+              <th>Compañía</th>
               <th class="th-sort" onclick="sortDetail('canal')">Canal</th>
               <th class="th-sort" onclick="sortDetail('tipo')">Tipo de gestión</th>
               <th class="th-sort" onclick="sortDetail('estado')">Estado</th>
@@ -1233,6 +1234,7 @@ function renderDetailRows(rows){
     return`<tr>
       <td><code style="font-size:10px;color:#7C3AED">${t.tk||'—'}</code></td>
       <td><strong>${t.agente||'—'}</strong></td>
+      <td>${t.compania?`<span style="cursor:pointer;color:#7C3AED;font-weight:600;font-size:12px" onclick="filterDetailByCompania('${encodeURIComponent(t.compania)}')" title="Filtrar por ${t.compania}">${t.compania}</span>`:'—'}</td>
       <td><span class="bs bs-pr">${t.canal||'—'}</span></td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.tipo||'—'}</td>
       <td><span class="bs ${estadoBadge(t.estado)}">${t.estado||'—'}</span></td>
@@ -1244,6 +1246,10 @@ function renderDetailRows(rows){
   document.getElementById('det-count').textContent=`${rows.length} registros`;
 }
 
+function filterDetailByCompania(enc){
+  document.getElementById('det-search').value=decodeURIComponent(enc);
+  filterDetail();
+}
 function filterDetail(){
   const q=document.getElementById('det-search').value.toLowerCase();
   const filtered=q?detRows.filter(t=>
