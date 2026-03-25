@@ -68,11 +68,11 @@ jobs:
           pip install requests openpyxl pandas -q
           echo "✅ Dependencias instaladas"
 
-      # 5. Descargar datos de Jelou
-      - name: 📥 Descargar datos de Jelou.ai
+      # 5. Verificar archivos Excel
+      - name: 📊 Verificar archivos Excel
         run: |
-          python jelou_downloader_headless.py
-          echo "Descarga completada"
+          python jelou_downloader_simple.py
+          echo "Verificación completada"
         continue-on-error: true
 
       # 6. Hacer commit de los archivos actualizados
