@@ -36,7 +36,6 @@ jobs:
 
       # 4. Descargar datos de Jelou
       - name: 📥 Descargar datos de Jelou.ai
-        working-directory: Jelou
         run: |
           python jelou_downloader_headless.py
           echo "Descarga completada"
@@ -47,8 +46,6 @@ jobs:
         run: |
           git config user.name "🤖 Jelou Automation Bot"
           git config user.email "automation@jelou.local"
-
-          cd Jelou
 
           # Ver qué cambios hay
           git add -A
