@@ -27,21 +27,55 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      # 3. Instalar dependencias
+      # 3. Crear config.json desde secrets
+      - name: 🔐 Crear archivo de configuración
+        run: |
+          cat > config.json << 'EOF'
+          {
+            "jelou": {
+              "email": "adalberto.salazar@jelou.ai",
+              "base_url": "https://apps.jelou.ai/datum/databases",
+              "timeout": 30
+            },
+            "dashboard": {
+              "url": "https://adalbertosalazar-lgtm.github.io/Jelou/",
+              "access_code": "jelou2026",
+              "local_path": "/home/runner/work/Jelou/Jelou"
+            },
+            "github": {
+              "token": "${{ secrets.GITHUB_TOKEN }}",
+              "repo": "adalbertosalazar-lgtm/adalbertosalazar-lgtm.github.io"
+            },
+            "excel_files": {
+              "Canal Chat": "Canal Chat.xlsx",
+              "Canal Correo": "Canal Correo.xlsx",
+              "Chats AI Agent": "Chats AI Agent.xlsx",
+              "CSAT AI Agent": "CSAT AI Agent.xlsx",
+              "CSAT Operadores": "CSAT Operadores.xlsx"
+            },
+            "schedule": {
+              "time": "06:00",
+              "timezone": "America/Bogota"
+            }
+          }
+          EOF
+          echo "✅ Archivo de configuración creado"
+
+      # 4. Instalar dependencias
       - name: 📦 Instalar dependencias
         run: |
           python -m pip install --upgrade pip
           pip install requests openpyxl pandas -q
           echo "✅ Dependencias instaladas"
 
-      # 4. Descargar datos de Jelou
+      # 5. Descargar datos de Jelou
       - name: 📥 Descargar datos de Jelou.ai
         run: |
           python jelou_downloader_headless.py
           echo "Descarga completada"
         continue-on-error: true
 
-      # 5. Hacer commit de los archivos actualizados
+      # 6. Hacer commit de los archivos actualizados
       - name: 💾 Hacer commit de cambios
         run: |
           git config user.name "🤖 Jelou Automation Bot"
@@ -58,12 +92,12 @@ jobs:
             echo "✅ Cambios committed"
           fi
 
-      # 6. Hacer push de los cambios
+      # 7. Hacer push de los cambios
       - name: 🚀 Hacer push de cambios
         run: |
           git push origin $(git rev-parse --abbrev-ref HEAD) || echo "✅ Repositorio ya estaba actualizado"
 
-      # 7. Generar reporte
+      # 8. Generar reporte
       - name: 📊 Generar reporte
         if: always()
         run: |
