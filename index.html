@@ -907,8 +907,8 @@ function renderG(d){
 }
 
 function renderHeatmap(tickets,containerId,mode='m'){
-  const SOPORTE_MERGE=['Soporte','Soporte L1','Soporte L2'];
-  const normRB=rb=>SOPORTE_MERGE.includes(rb)?'Soporte':rb;
+  const SOPORTE_MERGE=['soporte','soporte l1','soporte l2'];
+  const normRB=rb=>{const l=(rb||'').toLowerCase();if(SOPORTE_MERGE.includes(l))return'Soporte';return rb.charAt(0).toUpperCase()+rb.slice(1).toLowerCase();};
   const resolved=tickets.filter(t=>t.resolvedBy&&t.ttr>0&&t.ttr<720).map(t=>({...t,resolvedBy:normRB(t.resolvedBy)}));
   const pField=mode==='m'?'mLblFci':'wLblFci';
   const periods=mode==='m'
