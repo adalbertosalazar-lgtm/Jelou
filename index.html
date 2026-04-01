@@ -681,7 +681,7 @@ function parseD(v){
   if(p.length===3){const a=new Date(`${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`);if(!isNaN(a))return a;}
   return null;
 }
-const MARCH1=new Date("2026-03-01");
+const MARCH1=new Date("2026-03-25");
 const is26=d=>d&&d.getFullYear()===2026;
 const mLbl=d=>d?MONTHS[d.getMonth()]:"";
 const wLbl=d=>{if(!d)return"";const j=new Date(d.getFullYear(),0,1);const day=Math.floor((new Date(d.getFullYear(),d.getMonth(),d.getDate())-j)/86400000);return`S${Math.ceil((day+(j.getDay()+6)%7+1)/7)}`;};;
